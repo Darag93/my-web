@@ -12,10 +12,11 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             padding: 20px;
-            background: #121212;
+            background: #121212; /* ČERNÉ POZADÍ */
             color: #ffffff;
             margin: 0;
         }
+
         .container {
             max-width: 400px;
             margin: auto;
@@ -23,27 +24,23 @@
             flex-direction: column;
             min-height: 95vh;
         }
-        .content {
-            flex: 1;
-        }
+
         h1 {
             color: #00cf5d;
             font-size: 2.2rem;
             margin-bottom: 5px;
             margin-top: 20px;
             letter-spacing: -1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
+
         .subtitle {
             color: #888;
             font-size: 0.9rem;
             margin-bottom: 30px;
         }
+
         .card {
-            background: #1e1e1e;
+            background: #1e1e1e; /* TMAVÁ KARTA */
             padding: 25px;
             border-radius: 20px;
             margin-bottom: 20px;
@@ -51,6 +48,7 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             text-align: left;
         }
+
         h2 {
             font-size: 1.3rem;
             margin-top: 0;
@@ -59,6 +57,7 @@
             gap: 10px;
             margin-bottom: 5px;
         }
+
         .time-info {
             color: #00cf5d;
             font-weight: bold;
@@ -66,6 +65,7 @@
             font-size: 1rem;
             display: block;
         }
+
         .file-label {
             font-size: 0.8rem;
             color: #888;
@@ -74,6 +74,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         input[type="file"] {
             display: block;
             width: 100%;
@@ -82,8 +83,9 @@
             background: #252525;
             padding: 10px;
             border-radius: 10px;
-            border: 1px solid #444;
+            border: none;
         }
+
         .btn-start {
             background: #00cf5d;
             color: #000;
@@ -97,21 +99,20 @@
             width: 100%;
             box-shadow: 0 10px 20px rgba(0, 207, 93, 0.2);
             margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
+
         .btn-start:active {
             transform: scale(0.98);
             background: #00a34a;
         }
+
         #status {
             margin-top: 20px;
             color: #00cf5d;
             font-size: 0.9rem;
             font-weight: 500;
         }
+
         .footer {
             color: #444;
             font-size: 0.85rem;
@@ -119,34 +120,30 @@
             padding: 20px 0;
             border-top: 1px solid #222;
         }
-        .footer b {
-            color: #666;
-        }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <div class="content">
-            <h1>BioFlow 🐺</h1>
-            <div class="subtitle">Optimalizace těla a mysli</div>
+        <h1>BioFlow 🐺</h1>
+        <div class="subtitle">Optimalizace těla a mysli</div>
 
-            <div class="card">
-                <h2>💧 Pitný režim</h2>
-                <span class="time-info">450 ml každé 2 hodiny</span>
-                <label class="file-label">Zvuk upozornění:</label>
-                <input type="file" id="waterFile" accept="audio/*">
-            </div>
-
-            <div class="card">
-                <h2>🚶 Aktivní pauza</h2>
-                <span class="time-info">2 minuty každou hodinu</span>
-                <label class="file-label">Zvuk upozornění:</label>
-                <input type="file" id="walkFile" accept="audio/*">
-            </div>
-
-            <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM 🐺</button>
-            <div id="status">Připraven ke startu</div>
+        <div class="card">
+            <h2>💧 Pitný režim</h2>
+            <span class="time-info">450 ml každé 2 hodiny</span>
+            <label class="file-label">Zvuk upozornění:</label>
+            <input type="file" id="waterFile" accept="audio/*">
         </div>
+
+        <div class="card">
+            <h2>🚶 Aktivní pauza</h2>
+            <span class="time-info">2 minuty každou hodinu</span>
+            <label class="file-label">Zvuk upozornění:</label>
+            <input type="file" id="walkFile" accept="audio/*">
+        </div>
+
+        <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM 🐺</button>
+        <div id="status">Připraven ke startu</div>
 
         <div class="footer">
             Tvůrce: <b>Darag93</b>
@@ -154,54 +151,4 @@
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-        let waterAudio = new Audio();
-        let walkAudio = new Audio();
-
-        function startApp() {
-            const waterInput = document.getElementById('waterFile');
-            const walkInput = document.getElementById('walkFile');
-
-            if (waterInput.files[0]) waterAudio.src = URL.createObjectURL(waterInput.files[0]);
-            if (walkInput.files[0]) walkAudio.src = URL.createObjectURL(walkInput.files[0]);
-
-            if (!("Notification" in window)) {
-                alert("Tento prohlížeč nepodporuje notifikace.");
-                return;
-            }
-
-            Notification.requestPermission().then(perm => {
-                if (perm === 'granted') {
-                    document.getElementById('status').innerText = "✅ SYSTÉM BĚŽÍ (🐺 AKTIVNÍ)";
-                    document.querySelector('.btn-start').innerText = "VLK HLÍDÁ REŽIM 🐺";
-                    document.querySelector('.btn-start').style.opacity = "0.7";
-
-                    // Interval pro vodu (120 minut)
-                    setInterval(() => {
-                        if (waterAudio.src) waterAudio.play();
-                        new Notification("💧 ČAS NA VODU", {
-                            body: "Vypij 450 ml. Tvůj režim hlídá Darag93.",
-                            icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
-                        });
-                    }, 120 * 60 * 1000);
-
-                    // Interval pro pohyb (60 minut)
-                    setInterval(() => {
-                        if (walkAudio.src) walkAudio.play();
-                        new Notification("🚶 ČAS NA POHYB", {
-                            body: "Vstaň na 2 minuty! Aktivita je základ.",
-                            icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
-                        });
-                    }, 60 * 60 * 1000);
-
-                    alert("BioFlow s vlkem aktivován!");
-                } else {
-                    alert("Pro fungování musíte povolit oznámení.");
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+        if ('service
