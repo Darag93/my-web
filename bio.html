@@ -36,11 +36,8 @@
 
     <script src="sw.js"></script>
     <script>
-        // Registrace Service Workeru pro notifikace
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log("SW registrován"))
-                .catch(err => console.log("SW chyba", err));
+            navigator.serviceWorker.register('sw.js');
         }
 
         const startBtn = document.getElementById('startBtn');
@@ -48,17 +45,13 @@
 
         startBtn.addEventListener('click', () => {
             if (!("Notification" in window)) {
-                alert("Tento prohlížeč nepodporuje notifikace.");
+                alert("Notifikace nejsou podporovány.");
             } else if (Notification.permission === "granted") {
                 startProgram();
-            } else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        startProgram();
-                    }
-                });
             } else {
-                alert("Prosím, povol notifikace v nastavení prohlížeče.");
+                Notification.requestPermission().then(p => {
+                    if (p === "granted") startProgram();
+                });
             }
         });
 
@@ -68,7 +61,6 @@
             systemStatus.innerHTML = "✅ SYSTÉM BĚŽÍ";
             systemStatus.className = "running";
             
-            // Notifikace s ikonou vlka
             new Notification("BioFlow Aktivován", {
                 body: "Vlk tě teď bude hlídat!",
                 icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
