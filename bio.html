@@ -135,7 +135,7 @@
 
     <div class="container">
         <div class="content">
-            <h1>BioFlow 🚀</h1>
+            <h1>BioFlow 🐺</h1>
             <div class="subtitle">Optimalizace těla a mysli</div>
 
             <div class="card">
@@ -152,7 +152,7 @@
                 <input type="file" id="walkFile" accept="audio/*">
             </div>
 
-            <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM</button>
+            <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM 🐺</button>
 
             <div id="status">Připraven ke startu</div>
         </div>
@@ -183,36 +183,32 @@
 
             Notification.requestPermission().then(perm => {
                 if (perm === 'granted') {
-                    document.getElementById('status').innerText = "✅ SYSTÉM BĚŽÍ";
-                    document.querySelector('.btn-start').innerText = "AKTIVOVÁNO";
+                    document.getElementById('status').innerText = "✅ SYSTÉM BĚŽÍ (🐺 AKTIVNÍ)";
+                    document.querySelector('.btn-start').innerText = "VLK HLÍDÁ REŽIM";
                     document.querySelector('.btn-start').style.opacity = "0.5";
 
-                    // Voda - 2 hodiny (120 minut)
                     setInterval(() => {
                         if (waterAudio.src) waterAudio.play();
                         new Notification("💧 ČAS NA VODU", {
                             body: "Vypij 450 ml. Tvůj režim hlídá Darag93.",
-                            icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png"
+                            icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
                         });
                     }, 120 * 60 * 1000);
 
-                    // Chůze - 1 hodina (60 minut)
                     setInterval(() => {
                         if (walkAudio.src) walkAudio.play();
                         new Notification("🚶 ČAS NA POHYB", {
                             body: "Vstaň na 2 minuty! Aktivita je základ.",
-                            icon: "https://cdn-icons-png.flaticon.com/512/2864/2864339.png"
+                            icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
                         });
                     }, 60 * 60 * 1000);
 
-                    alert("BioFlow aktivován! Nechte kartu otevřenou na pozadí.");
+                    alert("BioFlow s vlkem aktivován! Nechte kartu otevřenou na pozadí.");
                 } else {
                     alert("Pro fungování musíte povolit oznámení.");
                 }
             });
         }
     </script>
-
 </body>
-
 </html>
