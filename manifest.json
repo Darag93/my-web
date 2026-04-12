@@ -1,16 +1,29 @@
 {
-    "short_name": "BioFlow",
-    "name": "Darag's BioFlow Tracker",
-    "icons": [
-        {
-            "src": "https://cdn-icons-png.flaticon.com/512/3105/3105807.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ],
-    "start_url": ".",
-    "display": "standalone",
-    "theme_color": "#121212",
-    "background_color": "#121212"
+  "short_name": "BioFlow",
+  "name": "BioFlow Darag93",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3105/3105807.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "bio.html",
+  "display": "standalone",
+  "theme_color": "#121212",
+  "background_color": "#121212"
+}{
+  "short_name": "BioFlow",
+  "name": "BioFlow Darag93",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3105/3105807.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "bio.html",
+  "display": "standalone",
+  "theme_color": "#121212",
+  "background_color": "#121212"
 }
