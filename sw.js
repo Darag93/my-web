@@ -3,7 +3,7 @@ self.addEventListener('install', (e) => {
     // Změna na v3 - tohle je ten příkaz, který vymaže raketu
     caches.open('bio-vlk-v3').then((cache) => {
       return cache.addAll([
-        'bio.html',
+        'bio-vlk-v3.html',
         'manifest.json',
         'index.html',
         'styl.css'
