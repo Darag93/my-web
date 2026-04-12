@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="cs">
-
 <head>
     <meta charset="UTF-8">
-    <title>Darag's BioFlow</title>
+    <title>BioFlow 🐺</title>
     <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
@@ -17,7 +16,6 @@
             color: #ffffff;
             margin: 0;
         }
-
         .container {
             max-width: 400px;
             margin: auto;
@@ -25,25 +23,25 @@
             flex-direction: column;
             min-height: 95vh;
         }
-
         .content {
             flex: 1;
         }
-
         h1 {
             color: #00cf5d;
             font-size: 2.2rem;
             margin-bottom: 5px;
             margin-top: 20px;
             letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-
         .subtitle {
             color: #888;
             font-size: 0.9rem;
             margin-bottom: 30px;
         }
-
         .card {
             background: #1e1e1e;
             padding: 25px;
@@ -53,7 +51,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             text-align: left;
         }
-
         h2 {
             font-size: 1.3rem;
             margin-top: 0;
@@ -62,7 +59,6 @@
             gap: 10px;
             margin-bottom: 5px;
         }
-
         .time-info {
             color: #00cf5d;
             font-weight: bold;
@@ -70,7 +66,6 @@
             font-size: 1rem;
             display: block;
         }
-
         .file-label {
             font-size: 0.8rem;
             color: #888;
@@ -79,7 +74,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         input[type="file"] {
             display: block;
             width: 100%;
@@ -88,8 +82,8 @@
             background: #252525;
             padding: 10px;
             border-radius: 10px;
+            border: 1px solid #444;
         }
-
         .btn-start {
             background: #00cf5d;
             color: #000;
@@ -103,20 +97,21 @@
             width: 100%;
             box-shadow: 0 10px 20px rgba(0, 207, 93, 0.2);
             margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-
         .btn-start:active {
             transform: scale(0.98);
             background: #00a34a;
         }
-
         #status {
             margin-top: 20px;
             color: #00cf5d;
             font-size: 0.9rem;
             font-weight: 500;
         }
-
         .footer {
             color: #444;
             font-size: 0.85rem;
@@ -124,15 +119,12 @@
             padding: 20px 0;
             border-top: 1px solid #222;
         }
-
         .footer b {
             color: #666;
         }
     </style>
 </head>
-
 <body>
-
     <div class="container">
         <div class="content">
             <h1>BioFlow 🐺</h1>
@@ -153,7 +145,6 @@
             </div>
 
             <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM 🐺</button>
-
             <div id="status">Připraven ke startu</div>
         </div>
 
@@ -184,9 +175,10 @@
             Notification.requestPermission().then(perm => {
                 if (perm === 'granted') {
                     document.getElementById('status').innerText = "✅ SYSTÉM BĚŽÍ (🐺 AKTIVNÍ)";
-                    document.querySelector('.btn-start').innerText = "VLK HLÍDÁ REŽIM";
-                    document.querySelector('.btn-start').style.opacity = "0.5";
+                    document.querySelector('.btn-start').innerText = "VLK HLÍDÁ REŽIM 🐺";
+                    document.querySelector('.btn-start').style.opacity = "0.7";
 
+                    // Interval pro vodu (120 minut)
                     setInterval(() => {
                         if (waterAudio.src) waterAudio.play();
                         new Notification("💧 ČAS NA VODU", {
@@ -195,6 +187,7 @@
                         });
                     }, 120 * 60 * 1000);
 
+                    // Interval pro pohyb (60 minut)
                     setInterval(() => {
                         if (walkAudio.src) walkAudio.play();
                         new Notification("🚶 ČAS NA POHYB", {
@@ -203,80 +196,10 @@
                         });
                     }, 60 * 60 * 1000);
 
-                    alert("BioFlow s vlkem aktivován! Nechte kartu otevřenou na pozadí.");
+                    alert("BioFlow s vlkem aktivován!");
                 } else {
                     alert("Pro fungování musíte povolit oznámení.");
                 }
-            });
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioFlow 🐺</title>
-    <link rel="stylesheet" href="styl.css">
-    <link rel="manifest" href="manifest.json">
-</head>
-<body>
-    <div class="container">
-        <h1>BioFlow 🐺</h1>
-        <p class="subtitle">Optimalizace těla a mysli</p>
-
-        <div class="card">
-            <h2>💧 Pitný režim</h2>
-            <p class="status">450 ml každé 2 hodiny</p>
-            <label>ZVUK UPOZORNĚNÍ:</label>
-            <input type="file" id="waterSound" accept="audio/*">
-        </div>
-
-        <div class="card">
-            <h2>🚶 Aktivní pauza</h2>
-            <p class="status">2 minuty každou hodinu</p>
-            <label>ZVUK UPOZORNĚNÍ:</label>
-            <input type="file" id="breakSound" accept="audio/*">
-        </div>
-
-        <button id="startBtn" class="btn-main">SPUSTIT PROGRAM 🐺</button>
-        <p id="systemStatus" class="ready">Připraven ke startu</p>
-
-        <div class="footer">
-            Tvůrce: <strong>Darag93</strong>
-        </div>
-    </div>
-
-    <script src="sw.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        const startBtn = document.getElementById('startBtn');
-        const systemStatus = document.getElementById('systemStatus');
-
-        startBtn.addEventListener('click', () => {
-            if (!("Notification" in window)) {
-                alert("Notifikace nejsou podporovány.");
-            } else if (Notification.permission === "granted") {
-                startProgram();
-            } else {
-                Notification.requestPermission().then(p => {
-                    if (p === "granted") startProgram();
-                });
-            }
-        });
-
-        function startProgram() {
-            startBtn.textContent = "AKTIVOVÁNO";
-            startBtn.classList.add('active');
-            systemStatus.innerHTML = "✅ SYSTÉM BĚŽÍ";
-            systemStatus.className = "running";
-            
-            new Notification("BioFlow Aktivován", {
-                body: "Vlk tě teď bude hlídat!",
-                icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
             });
         }
     </script>
