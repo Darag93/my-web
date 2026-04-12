@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>BioFlow Darag93</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #121212; color: white; margin: 0; }
+        .container { max-width: 400px; margin: auto; padding-top: 30px; }
+        h1 { color: #00cf5d; font-size: 2.5rem; margin-bottom: 5px; }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #333; text-align: left; }
+        h3 { margin-top: 0; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .info { color: #00cf5d; font-weight: bold; }
+        .btn-start { background: #00cf5d; color: black; border: none; padding: 20px; border-radius: 50px; font-size: 1.2rem; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+        .footer { margin-top: 50px; color: #444; border-top: 1px solid #222; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BioFlow 🚀</h1>
+        <div class="subtitle">Optimalizace těla a mysli</div>
+
+        <div class="card">
+            <h3>💧 Pitný režim</h3>
+            <span class="info">450 ml každé 2 hodiny</span>
+        </div>
+
+        <div class="card">
+            <h3>🚶 Aktivní pauza</h3>
+            <span class="info">2 minuty každou hodinu</span>
+        </div>
+
+        <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM</button>
+
+        <div class="footer">Tvůrce: <b>Darag93</b></div>
+    </div>
+
+    <script>
+        function startApp() {
+            if (!("Notification" in window)) {
+                alert("Tento prohlížeč nepodporuje notifikace.");
+                return;
+            }
+            Notification.requestPermission().then(perm => {
+                if (perm === 'granted') {
+                    alert("BioFlow AKTIVOVÁN! Darag93 tě teď hlídá.");
+                } else {
+                    alert("Musíš povolit upozornění, aby appka mohla fungovat.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
