@@ -36,7 +36,7 @@
 
     <script src="sw.js"></script>
     <script>
-        // Registrace Service Workeru
+        // Registrace Service Workeru pro notifikace
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(() => console.log("SW registrován"))
@@ -47,7 +47,6 @@
         const systemStatus = document.getElementById('systemStatus');
 
         startBtn.addEventListener('click', () => {
-            // Žádost o notifikace
             if (!("Notification" in window)) {
                 alert("Tento prohlížeč nepodporuje notifikace.");
             } else if (Notification.permission === "granted") {
@@ -69,7 +68,7 @@
             systemStatus.innerHTML = "✅ SYSTÉM BĚŽÍ";
             systemStatus.className = "running";
             
-            // Notifikace s vlkem
+            // Notifikace s ikonou vlka
             new Notification("BioFlow Aktivován", {
                 body: "Vlk tě teď bude hlídat!",
                 icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
