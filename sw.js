@@ -1,6 +1,6 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('bio-v1').then((cache) => cache.addAll(['bio.html', 'manifest.json']))
+    caches.open('bio-vlk-v2').then((cache) => cache.addAll(['bio.html', 'manifest.json']))
   );
 });
 
