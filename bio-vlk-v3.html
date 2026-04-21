@@ -15,11 +15,11 @@
         .label { color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-start { background: #00cf5d; color: black; }
-        .btn-start:disabled { background: #222; color: #555; cursor: default; }
-        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; box-shadow: 0 0 20px rgba(255, 59, 48, 0.5); }
+        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
         .music-box { margin: 15px 0; background: #252525; padding: 10px; border-radius: 15px; border: 1px dashed #444; }
         input[type="file"] { color: #888; font-size: 0.7rem; width: 100%; }
+        .footer-info { margin-top: 15px; font-size: 0.8rem; color: #444; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -29,16 +29,18 @@
     <div class="card">
         <div id="label" class="label">PŘIPRAVEN</div>
         <div id="timer">00:00:00</div>
-        <div id="info" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Další: Voda (2h)</div>
+        <div id="info" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Režim: 1h Voda / 1h Aktivita</div>
     </div>
 
     <div class="music-box">
-        <span style="font-size: 0.7rem; color: #00cf5d; font-weight: bold;">ZVOLIT VLASTNÍ BUDÍK (MP3):</span><br>
+        <span style="font-size: 0.7rem; color: #00cf5d; font-weight: bold;">VLASTNÍ ZVUK (MP3):</span><br>
         <input type="file" id="musicInput" accept="audio/*">
     </div>
 
     <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
     <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">VYPNOUT BUDÍK 🛑</button>
+
+    <div class="footer-info">Autor: Darag93</div>
 </div>
 
 <script>
@@ -48,79 +50,3 @@
     let currentMode = 'voda'; 
     
     let audio = new Audio();
-    audio.loop = true;
-
-    document.getElementById('musicInput').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            audio.src = URL.createObjectURL(file);
-            console.log("Vlastní hudba nastavena");
-        }
-    };
-
-    function updateDisplay() {
-        const h = Math.floor(timeLeft / 3600);
-        const m = Math.floor((timeLeft % 3600) / 60);
-        const s = timeLeft % 60;
-        document.getElementById('timer').innerText = 
-            `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-
-    function toggleApp() {
-        if (!isRunning) {
-            if (!audio.src) {
-                audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
-            }
-            if ('Notification' in window) {
-                Notification.requestPermission();
-            }
-            startSequence();
-            document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
-            document.getElementById('mainBtn').disabled = true;
-            isRunning = true;
-        }
-    }
-
-    function startSequence() {
-        if (currentMode === 'voda') {
-            timeLeft = 2 * 3600; 
-            document.getElementById('label').innerText = "💧 PIJ VODU (450ml)";
-            document.getElementById('info').innerText = "Poté následuje: Chůze (1h)";
-        } else {
-            timeLeft = 1 * 3600; 
-            document.getElementById('label').innerText = "🚶 VSTAŇ A CHOĎ (2min)";
-            document.getElementById('info').innerText = "Poté následuje: Voda (2h)";
-        }
-        updateDisplay();
-
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            updateDisplay();
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                audio.play().catch(err => console.log("Audio error:", err));
-                document.getElementById('stopBtn').style.display = "block";
-            }
-        }, 1000);
-    }
-
-    function stopAlarm() {
-        audio.pause();
-        audio.currentTime = 0;
-        document.getElementById('stopBtn').style.display = "none";
-        
-        // Přepnutí režimu a okamžitý start dalšího odpočtu
-        currentMode = (currentMode === 'voda') ? 'chuze' : 'voda';
-        startSequence();
-    }
-
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW registrován'))
-            .catch(err => console.log('SW selhal', err));
-        });
-    }
-</script>
-</body>
-</html>
