@@ -4,69 +4,41 @@
     <meta charset="UTF-8">
     <title>BioFlow 🐺</title>
     <link rel="manifest" href="manifest.json">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
     <style>
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            text-align: center;
-            background: #121212;
-            color: #ffffff;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100vh;
-        }
-        .container { padding: 20px; max-width: 400px; margin: auto; width: 90%; }
-        h1 { color: #00cf5d; margin: 0 0 5px 0; font-size: 2.5rem; }
-        .card {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 25px;
-            border: 1px solid #333;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        #timer {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #00cf5d;
-            margin: 15px 0;
-            font-variant-numeric: tabular-nums;
-        }
-        .status-text { color: #888; font-size: 1.1rem; font-weight: bold; }
-        .btn {
-            width: 100%;
-            padding: 20px;
-            border-radius: 50px;
-            border: none;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .container { padding: 20px; max-width: 400px; margin: auto; }
+        h1 { color: #00cf5d; font-size: 2.5rem; margin-bottom: 10px; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        #timer { font-size: 4rem; font-weight: bold; color: #00cf5d; margin: 10px 0; }
+        .status-text { color: #888; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; }
+        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
         .btn-start { background: #00cf5d; color: #000; }
         .btn-stop { background: #ff3b30; color: #fff; display: none; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .footer { position: absolute; bottom: 20px; width: 100%; color: #333; font-size: 0.8rem; left: 0; }
+        .music-upload { background: #333; color: #ccc; font-size: 0.8rem; padding: 10px; border-radius: 10px; margin-top: 10px; cursor: pointer; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .footer { color: #444; font-size: 0.8rem; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>BioFlow 🐺</h1>
+    
     <div class="card">
         <div id="label" class="status-text">PŘIPRAVEN</div>
         <div id="timer">00:00:00</div>
-        <div id="next-label" style="font-size: 0.8rem; color: #555;">Verze: 3.0 (Offline)</div>
+        <div id="sub-label" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Další: Voda (2h)</div>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label for="audio-file" class="status-text" style="font-size: 0.7rem;">Nastavit zvuk alarmu (MP3):</label>
+        <input type="file" id="audio-file" class="music-upload" accept="audio/*">
     </div>
 
     <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">ZASTAVIT ALARM 🛑</button>
+    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">VYPNOUT ZVONĚNÍ 🛑</button>
 </div>
 
 <div class="footer">Tvůrce: Darag93</div>
@@ -75,10 +47,19 @@
     let timeLeft;
     let timerInterval;
     let isRunning = false;
-    let currentMode = 'voda'; 
+    let currentMode = 'water'; // Střídá 'water' (2h) a 'walk' (1h)
     
-    const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+    let audio = new Audio();
     audio.loop = true;
+
+    // Nahrání vlastní hudby
+    document.getElementById('audio-file').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            audio.src = URL.createObjectURL(file);
+            alert("Hudba nastavena! 🐺");
+        }
+    };
 
     function updateDisplay() {
         const h = Math.floor(timeLeft / 3600);
@@ -90,12 +71,12 @@
 
     function toggleApp() {
         if (!isRunning) {
-            // Aktivace notifikací a zvuku (nutné kliknutí uživatele)
+            if (audio.src === "") {
+                audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg'; // Default pokud nevybereš
+            }
             Notification.requestPermission();
-            audio.play().then(() => audio.pause()); 
-            
             startPhase();
-            document.getElementById('mainBtn').innerText = "BĚŽÍ NA POZADÍ...";
+            document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
             document.getElementById('mainBtn').disabled = true;
             document.getElementById('mainBtn').style.opacity = "0.5";
             isRunning = true;
@@ -103,12 +84,14 @@
     }
 
     function startPhase() {
-        if (currentMode === 'voda') {
-            timeLeft = 2 * 3600; 
+        if (currentMode === 'water') {
+            timeLeft = 2 * 3600; // 2 hodiny
             document.getElementById('label').innerText = "💧 PIJ VODU (450ml)";
+            document.getElementById('sub-label').innerText = "Poté bude následovat: Chůze (1h)";
         } else {
-            timeLeft = 1 * 3600; 
-            document.getElementById('label').innerText = "🚶 AKTIVNÍ CHŮZE (2min)";
+            timeLeft = 1 * 3600; // 1 hodina
+            document.getElementById('label').innerText = "🚶 VSTAŇ ZE ŽIDLE";
+            document.getElementById('sub-label').innerText = "Poté bude následovat: Voda (2h)";
         }
         updateDisplay();
 
@@ -123,8 +106,13 @@
         clearInterval(timerInterval);
         audio.play();
         document.getElementById('stopBtn').style.display = "block";
+        document.getElementById('timer').style.color = "#ff3b30";
+        
         if (Notification.permission === "granted") {
-            new Notification("BioFlow 🐺", { body: "Čas na akci! " + (currentMode === 'voda' ? "Voda" : "Chůze") });
+            new Notification("BioFlow 🐺", { 
+                body: currentMode === 'water' ? "Napij se (450ml)!" : "Vstávej ze židle!",
+                icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
+            });
         }
     }
 
@@ -132,17 +120,15 @@
         audio.pause();
         audio.currentTime = 0;
         document.getElementById('stopBtn').style.display = "none";
-        currentMode = currentMode === 'voda' ? 'chuze' : 'voda';
+        document.getElementById('timer').style.color = "#00cf5d";
+        
+        // Přepnutí režimu
+        currentMode = (currentMode === 'water') ? 'walk' : 'water';
         startPhase();
     }
 
-    // Registrace Service Workeru
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW registrován'))
-                .catch(err => console.log('SW selhal', err));
-        });
+        navigator.serviceWorker.register('sw.js');
     }
 </script>
 </body>
