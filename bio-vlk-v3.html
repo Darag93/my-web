@@ -7,58 +7,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#121212">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; height: 100vh; }
         .container { padding: 20px; max-width: 400px; margin: auto; }
-        h1 { color: #00cf5d; font-size: 2.5rem; margin-bottom: 10px; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        #timer { font-size: 4rem; font-weight: bold; color: #00cf5d; margin: 10px 0; }
-        .status-text { color: #888; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; }
-        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 15px; transition: 0.3s; }
-        .btn-start { background: #00cf5d; color: #000; }
-        .btn-stop { background: #ff3b30; color: #fff; display: none; animation: pulse 1s infinite; }
-        .music-upload { background: #333; color: #ccc; font-size: 0.8rem; padding: 10px; border-radius: 10px; margin-top: 10px; cursor: pointer; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .footer { color: #444; font-size: 0.8rem; margin-top: 20px; }
+        h1 { color: #00cf5d; margin: 0; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin: 20px 0; }
+        #timer { font-size: 4rem; color: #00cf5d; font-weight: bold; margin: 10px 0; }
+        .label { color: #888; font-weight: bold; text-transform: uppercase; }
+        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-start { background: #00cf5d; color: black; }
+        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        input[type="file"] { margin: 10px 0; color: #555; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>BioFlow 🐺</h1>
-    
     <div class="card">
-        <div id="label" class="status-text">PŘIPRAVEN</div>
+        <div id="label" class="label">PŘIPRAVEN</div>
         <div id="timer">00:00:00</div>
-        <div id="sub-label" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Další: Voda (2h)</div>
+        <div id="info" style="font-size: 0.8rem; color: #555;">Další: Voda (2h)</div>
     </div>
 
     <div style="margin-bottom: 10px;">
-        <label for="audio-file" class="status-text" style="font-size: 0.7rem;">Nastavit zvuk alarmu (MP3):</label>
-        <input type="file" id="audio-file" class="music-upload" accept="audio/*">
+        <span style="font-size: 0.7rem; color: #888;">NASTAVIT VLASTNÍ HUDBU (MP3):</span><br>
+        <input type="file" id="musicInput" accept="audio/*">
     </div>
 
     <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">VYPNOUT ZVONĚNÍ 🛑</button>
+    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">VYPNOUT BUDÍK 🛑</button>
 </div>
-
-<div class="footer">Tvůrce: Darag93</div>
 
 <script>
     let timeLeft;
     let timerInterval;
     let isRunning = false;
-    let currentMode = 'water'; // Střídá 'water' (2h) a 'walk' (1h)
+    let currentMode = 'voda'; // voda (2h) nebo chuze (1h)
     
     let audio = new Audio();
     audio.loop = true;
 
     // Nahrání vlastní hudby
-    document.getElementById('audio-file').onchange = function(e) {
+    document.getElementById('musicInput').onchange = function(e) {
         const file = e.target.files[0];
-        if (file) {
-            audio.src = URL.createObjectURL(file);
-            alert("Hudba nastavena! 🐺");
-        }
+        if (file) audio.src = URL.createObjectURL(file);
     };
 
     function updateDisplay() {
@@ -71,65 +64,39 @@
 
     function toggleApp() {
         if (!isRunning) {
-            if (audio.src === "") {
-                audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg'; // Default pokud nevybereš
-            }
+            if (!audio.src) audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
             Notification.requestPermission();
-            startPhase();
+            startSequence();
             document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
             document.getElementById('mainBtn').disabled = true;
-            document.getElementById('mainBtn').style.opacity = "0.5";
             isRunning = true;
         }
     }
 
-    function startPhase() {
-        if (currentMode === 'water') {
+    function startSequence() {
+        if (currentMode === 'voda') {
             timeLeft = 2 * 3600; // 2 hodiny
             document.getElementById('label').innerText = "💧 PIJ VODU (450ml)";
-            document.getElementById('sub-label').innerText = "Poté bude následovat: Chůze (1h)";
+            document.getElementById('info').innerText = "Poté následuje: Chůze (1h)";
         } else {
             timeLeft = 1 * 3600; // 1 hodina
-            document.getElementById('label').innerText = "🚶 VSTAŇ ZE ŽIDLE";
-            document.getElementById('sub-label').innerText = "Poté bude následovat: Voda (2h)";
+            document.getElementById('label').innerText = "🚶 VSTAŇ A CHOĎ (2min)";
+            document.getElementById('info').innerText = "Poté následuje: Voda (2h)";
         }
         updateDisplay();
 
         timerInterval = setInterval(() => {
             timeLeft--;
             updateDisplay();
-            if (timeLeft <= 0) triggerAlarm();
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                audio.play();
+                document.getElementById('stopBtn').style.display = "block";
+            }
         }, 1000);
-    }
-
-    function triggerAlarm() {
-        clearInterval(timerInterval);
-        audio.play();
-        document.getElementById('stopBtn').style.display = "block";
-        document.getElementById('timer').style.color = "#ff3b30";
-        
-        if (Notification.permission === "granted") {
-            new Notification("BioFlow 🐺", { 
-                body: currentMode === 'water' ? "Napij se (450ml)!" : "Vstávej ze židle!",
-                icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
-            });
-        }
     }
 
     function stopAlarm() {
         audio.pause();
         audio.currentTime = 0;
-        document.getElementById('stopBtn').style.display = "none";
-        document.getElementById('timer').style.color = "#00cf5d";
-        
-        // Přepnutí režimu
-        currentMode = (currentMode === 'water') ? 'walk' : 'water';
-        startPhase();
-    }
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
-</script>
-</body>
-</html>
+        document.getElementById('stopBtn').style.display = "none
