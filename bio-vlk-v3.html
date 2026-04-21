@@ -15,7 +15,9 @@
         .label { color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
         .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-start { background: #00cf5d; color: black; }
-        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
+        .btn-stop-timer { background: #ff9800; color: white; display: none; } /* Nové STOP tlačítko */
+        .btn-stop-alarm { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
+        .btn-install { background: #2196F3; color: white; display: none; margin-bottom: 20px; font-size: 1rem; } /* Tlačítko pro instalaci */
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
         .music-box { margin: 15px 0; background: #252525; padding: 10px; border-radius: 15px; border: 1px dashed #444; }
         input[type="file"] { color: #888; font-size: 0.7rem; width: 100%; }
@@ -25,6 +27,8 @@
 <body>
 
 <div class="container">
+    <button id="installBtn" class="btn btn-install" onclick="installApp()">📥 STÁHNOUT APLIKACI NA PLOCHU</button>
+
     <h1>BioFlow 🐺</h1>
     <div class="card">
         <div id="label" class="label">PŘIPRAVEN</div>
@@ -38,7 +42,8 @@
     </div>
 
     <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
-    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">VYPNOUT BUDÍK 🛑</button>
+    <button id="stopTimerBtn" class="btn btn-stop-timer" onclick="stopProgram()">ZASTAVIT PROGRAM 🛑</button>
+    <button id="stopBtn" class="btn btn-stop-alarm" onclick="stopAlarm()">VYPNOUT BUDÍK 🛑</button>
 
     <div class="footer-info">Autor: Darag93</div>
 </div>
@@ -51,7 +56,29 @@
     let audio = new Audio();
     audio.loop = true;
 
-    // Fix pro zamknutý mobil: Audio se musí poprvé "nakopnout" uživatelem
+    // --- INSTALACE APLIKACE ---
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Pokud lze appku nainstalovat, ukaž modré tlačítko
+        document.getElementById('installBtn').style.display = 'block';
+    });
+
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Uživatel aplikaci nainstaloval');
+                }
+                deferredPrompt = null;
+                document.getElementById('installBtn').style.display = 'none'; // Schovat tlačítko po instalaci
+            });
+        }
+    }
+    // --------------------------
+
     document.getElementById('musicInput').onchange = function(e) {
         const file = e.target.files[0];
         if (file) audio.src = URL.createObjectURL(file);
@@ -67,24 +94,23 @@
 
     function toggleApp() {
         if (!isRunning) {
-            // Default zvuk pokud není vybrán
             if (!audio.src) audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
             
-            // Povolení notifikací
             if ("Notification" in window) {
                 Notification.requestPermission();
             }
 
             startSequence();
-            document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
-            document.getElementById('mainBtn').disabled = true;
-            document.getElementById('mainBtn').style.opacity = "0.5";
+            
+            // Prohazování tlačítek po spuštění
+            document.getElementById('mainBtn').style.display = "none";
+            document.getElementById('stopTimerBtn').style.display = "block";
             isRunning = true;
         }
     }
 
     function startSequence() {
-        timeLeft = 5; // 1 hodina (při testování dejte např. 5 pro 5 sekund)
+        timeLeft = 60; // Nyní na zkoušku 1 MINUTA (60 sekund)
         
         if (currentMode === 'voda') {
             document.getElementById('label').innerText = "💧 PIJ VODU (450ML)";
@@ -107,9 +133,31 @@
         }, 1000);
     }
 
+    // NOVÁ FUNKCE PRO ZASTAVENÍ PROGRAMU
+    function stopProgram() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        currentMode = 'voda'; // Vrátíme to na začátek
+        
+        // Obnovení UI do základního stavu
+        document.getElementById('label').innerText = "PŘIPRAVEN";
+        document.getElementById('info').innerText = "Režim: 1h Voda / 1h Aktivita";
+        document.getElementById('timer').innerText = "00:00:00";
+        
+        document.getElementById('mainBtn').style.display = "block";
+        document.getElementById('stopTimerBtn').style.display = "none";
+        document.getElementById('stopBtn').style.display = "none";
+        
+        audio.pause();
+        audio.currentTime = 0;
+    }
+
     function playAlarm() {
         audio.play().catch(e => console.log("Nutný manuální start audia"));
+        
+        // Ukážeme budík a skryjeme normální STOP tlačítko
         document.getElementById('stopBtn').style.display = "block";
+        document.getElementById('stopTimerBtn').style.display = "none";
         
         if ("Notification" in window && Notification.permission === "granted") {
             new Notification("BioFlow 🐺", {
@@ -122,14 +170,15 @@
     function stopAlarm() {
         audio.pause();
         audio.currentTime = 0;
-        document.getElementById('stopBtn').style.display = "none";
         
-        // Přepnutí režimu
+        // Skryjeme budík a vrátíme STOP tlačítko, protože program běží dál do další fáze
+        document.getElementById('stopBtn').style.display = "none";
+        document.getElementById('stopTimerBtn').style.display = "block";
+        
         currentMode = (currentMode === 'voda') ? 'chuze' : 'voda';
         startSequence();
     }
 
-    // Registrace Service Workeru
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js');
     }
