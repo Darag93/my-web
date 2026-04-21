@@ -9,15 +9,17 @@
     <style>
         body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; height: 100vh; }
         .container { padding: 20px; max-width: 400px; margin: auto; }
-        h1 { color: #00cf5d; margin: 0; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin: 20px 0; }
-        #timer { font-size: 4rem; color: #00cf5d; font-weight: bold; margin: 10px 0; }
-        .label { color: #888; font-weight: bold; text-transform: uppercase; }
-        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        h1 { color: #00cf5d; margin: 0; text-shadow: 0 0 10px rgba(0, 207, 93, 0.3); }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #timer { font-size: 4rem; color: #00cf5d; font-weight: bold; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .label { color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-start { background: #00cf5d; color: black; }
-        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        input[type="file"] { margin: 10px 0; color: #555; font-size: 0.8rem; }
+        .btn-start:disabled { background: #222; color: #555; cursor: default; }
+        .btn-stop { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; box-shadow: 0 0 20px rgba(255, 59, 48, 0.5); }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        .music-box { margin: 15px 0; background: #252525; padding: 10px; border-radius: 15px; border: 1px dashed #444; }
+        input[type="file"] { color: #888; font-size: 0.7rem; width: 100%; }
     </style>
 </head>
 <body>
@@ -27,11 +29,11 @@
     <div class="card">
         <div id="label" class="label">PŘIPRAVEN</div>
         <div id="timer">00:00:00</div>
-        <div id="info" style="font-size: 0.8rem; color: #555;">Další: Voda (2h)</div>
+        <div id="info" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Další: Voda (2h)</div>
     </div>
 
-    <div style="margin-bottom: 10px;">
-        <span style="font-size: 0.7rem; color: #888;">NASTAVIT VLASTNÍ HUDBU (MP3):</span><br>
+    <div class="music-box">
+        <span style="font-size: 0.7rem; color: #00cf5d; font-weight: bold;">ZVOLIT VLASTNÍ BUDÍK (MP3):</span><br>
         <input type="file" id="musicInput" accept="audio/*">
     </div>
 
@@ -43,15 +45,17 @@
     let timeLeft;
     let timerInterval;
     let isRunning = false;
-    let currentMode = 'voda'; // voda (2h) nebo chuze (1h)
+    let currentMode = 'voda'; 
     
     let audio = new Audio();
     audio.loop = true;
 
-    // Nahrání vlastní hudby
     document.getElementById('musicInput').onchange = function(e) {
         const file = e.target.files[0];
-        if (file) audio.src = URL.createObjectURL(file);
+        if (file) {
+            audio.src = URL.createObjectURL(file);
+            console.log("Vlastní hudba nastavena");
+        }
     };
 
     function updateDisplay() {
@@ -64,8 +68,12 @@
 
     function toggleApp() {
         if (!isRunning) {
-            if (!audio.src) audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
-            Notification.requestPermission();
+            if (!audio.src) {
+                audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
+            }
+            if ('Notification' in window) {
+                Notification.requestPermission();
+            }
             startSequence();
             document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
             document.getElementById('mainBtn').disabled = true;
@@ -75,11 +83,11 @@
 
     function startSequence() {
         if (currentMode === 'voda') {
-            timeLeft = 2 * 3600; // 2 hodiny
+            timeLeft = 2 * 3600; 
             document.getElementById('label').innerText = "💧 PIJ VODU (450ml)";
             document.getElementById('info').innerText = "Poté následuje: Chůze (1h)";
         } else {
-            timeLeft = 1 * 3600; // 1 hodina
+            timeLeft = 1 * 3600; 
             document.getElementById('label').innerText = "🚶 VSTAŇ A CHOĎ (2min)";
             document.getElementById('info').innerText = "Poté následuje: Voda (2h)";
         }
@@ -90,7 +98,7 @@
             updateDisplay();
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                audio.play();
+                audio.play().catch(err => console.log("Audio error:", err));
                 document.getElementById('stopBtn').style.display = "block";
             }
         }, 1000);
@@ -99,4 +107,20 @@
     function stopAlarm() {
         audio.pause();
         audio.currentTime = 0;
-        document.getElementById('stopBtn').style.display = "none
+        document.getElementById('stopBtn').style.display = "none";
+        
+        // Přepnutí režimu a okamžitý start dalšího odpočtu
+        currentMode = (currentMode === 'voda') ? 'chuze' : 'voda';
+        startSequence();
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registrován'))
+            .catch(err => console.log('SW selhal', err));
+        });
+    }
+</script>
+</body>
+</html>
