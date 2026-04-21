@@ -4,110 +4,58 @@
     <meta charset="UTF-8">
     <title>BioFlow 🐺</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
     <style>
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             text-align: center;
-            padding: 20px;
             background: #121212;
             color: #ffffff;
             margin: 0;
-        }
-        .container {
-            max-width: 400px;
-            margin: auto;
             display: flex;
             flex-direction: column;
-            min-height: 95vh;
+            justify-content: center;
+            height: 100vh;
         }
-        h1 {
-            color: #00cf5d;
-            font-size: 2.2rem;
-            margin-bottom: 5px;
-            margin-top: 20px;
-        }
-        .subtitle {
-            color: #888;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-        }
+        .container { padding: 20px; max-width: 400px; margin: auto; width: 90%; }
+        h1 { color: #00cf5d; margin: 0 0 5px 0; font-size: 2.5rem; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
         .card {
             background: #1e1e1e;
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 20px;
+            padding: 30px;
+            border-radius: 25px;
             border: 1px solid #333;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            text-align: left;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        h2 {
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .time-info {
-            color: #00cf5d;
+        #timer {
+            font-size: 4rem;
             font-weight: bold;
-            display: block;
-            margin-bottom: 15px;
+            color: #00cf5d;
+            margin: 15px 0;
+            font-variant-numeric: tabular-nums;
         }
-        .btn-start {
-            background: #00cf5d;
-            color: #000;
-            border: none;
+        .status-text { color: #888; font-size: 1.1rem; font-weight: bold; }
+        .btn {
+            width: 100%;
             padding: 20px;
             border-radius: 50px;
+            border: none;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            width: 100%;
-        }
-        #status {
             margin-top: 20px;
-            color: #00cf5d;
         }
-        .footer {
-            color: #444;
-            margin-top: auto;
-            padding: 20px 0;
-            border-top: 1px solid #222;
-        }
+        .btn-start { background: #00cf5d; color: #000; }
+        .btn-reset { background: #333; color: #888; margin-top: 10px; font-size: 0.9rem; padding: 10px; }
+        .btn-stop { background: #ff3b30; color: #fff; display: none; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .footer { position: absolute; bottom: 20px; width: 100%; color: #333; font-size: 0.8rem; left: 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>BioFlow 🐺</h1>
-        <div class="subtitle">Optimalizace těla a mysli</div>
-        <div class="card">
-            <h2>💧 Pitný režim</h2>
-            <span class="time-info">450 ml každé 2 hodiny</span>
-            <input type="file" id="waterFile" accept="audio/*">
-        </div>
-        <div class="card">
-            <h2>🚶 Aktivní pauza</h2>
-            <span class="time-info">2 minuty každou hodinu</span>
-            <input type="file" id="walkFile" accept="audio/*">
-        </div>
-        <button class="btn-start" onclick="startApp()">SPUSTIT PROGRAM 🐺</button>
-        <div id="status">Připraven ke startu</div>
-        <div class="footer">Tvůrce: <b>Darag93</b></div>
-    </div>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-        function startApp() {
-            Notification.requestPermission().then(perm => {
-                if (perm === 'granted') {
-                    document.getElementById('status').innerText = "✅ SYSTÉM BĚŽÍ (🐺 AKTIVNÍ)";
-                    alert("BioFlow s vlkem aktivován!");
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+
+<div class="container
