@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#121212">
     <style>
-        body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; height: 100vh; }
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; height: 100vh; overflow: hidden; }
         .container { padding: 20px; max-width: 400px; margin: auto; }
         h1 { color: #00cf5d; margin: 0; text-shadow: 0 0 10px rgba(0, 207, 93, 0.3); }
         .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -48,5 +48,91 @@
     let timerInterval;
     let isRunning = false;
     let currentMode = 'voda'; 
-    
     let audio = new Audio();
+    audio.loop = true;
+
+    // Fix pro zamknutý mobil: Audio se musí poprvé "nakopnout" uživatelem
+    document.getElementById('musicInput').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) audio.src = URL.createObjectURL(file);
+    };
+
+    function updateDisplay() {
+        const h = Math.floor(timeLeft / 3600);
+        const m = Math.floor((timeLeft % 3600) / 60);
+        const s = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+            `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function toggleApp() {
+        if (!isRunning) {
+            // Default zvuk pokud není vybrán
+            if (!audio.src) audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
+            
+            // Povolení notifikací
+            if ("Notification" in window) {
+                Notification.requestPermission();
+            }
+
+            startSequence();
+            document.getElementById('mainBtn').innerText = "PROGRAM BĚŽÍ...";
+            document.getElementById('mainBtn').disabled = true;
+            document.getElementById('mainBtn').style.opacity = "0.5";
+            isRunning = true;
+        }
+    }
+
+    function startSequence() {
+        timeLeft = 3600; // 1 hodina (při testování dejte např. 5 pro 5 sekund)
+        
+        if (currentMode === 'voda') {
+            document.getElementById('label').innerText = "💧 PIJ VODU (450ML)";
+            document.getElementById('info').innerText = "Poté následuje: Chůze (1h)";
+        } else {
+            document.getElementById('label').innerText = "🚶 CHŮZE / AKTIVITA";
+            document.getElementById('info').innerText = "Poté následuje: Voda (1h)";
+        }
+        
+        updateDisplay();
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                playAlarm();
+            }
+        }, 1000);
+    }
+
+    function playAlarm() {
+        audio.play().catch(e => console.log("Nutný manuální start audia"));
+        document.getElementById('stopBtn').style.display = "block";
+        
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("BioFlow 🐺", {
+                body: currentMode === 'voda' ? "Čas se napít!" : "Čas na chůzi!",
+                icon: "https://cdn-icons-png.flaticon.com/512/2829/2829824.png"
+            });
+        }
+    }
+
+    function stopAlarm() {
+        audio.pause();
+        audio.currentTime = 0;
+        document.getElementById('stopBtn').style.display = "none";
+        
+        // Přepnutí režimu
+        currentMode = (currentMode === 'voda') ? 'chuze' : 'voda';
+        startSequence();
+    }
+
+    // Registrace Service Workeru
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
+</script>
+</body>
+</html>
