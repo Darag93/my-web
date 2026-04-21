@@ -1,25 +1,24 @@
+const cacheName = 'bio-vlk-v3-cache';
+const filesToCache = [
+  'bio-vlk-v3.html',
+  'manifest.json'
+];
+
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
-    // Změna na v3 - tohle je ten příkaz, který vymaže raketu
-    caches.open('bio-vlk-v3').then((cache) => {
-      return cache.addAll([
-        'bio-vlk-v3.html',
-        'manifest.json',
-        'index.html',
-        'styl.css'
-      ]);
+    caches.open(cacheName).then((cache) => {
+      return cache.addAll(filesToCache);
     })
   );
 });
 
 self.addEventListener('activate', (event) => {
-  // Smaže úplně všechno staré (v1 i v2 s raketou)
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== 'bio-vlk-v3') {
-            console.log('Mažu starou mezipaměť:', cacheName);
+          if (cacheName !== cacheName) {
             return caches.delete(cacheName);
           }
         })
