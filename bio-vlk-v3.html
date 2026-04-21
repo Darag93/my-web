@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>BioFlow 🐺</title>
     <link rel="manifest" href="manifest.json">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,7 +24,6 @@
         }
         .container { padding: 20px; max-width: 400px; margin: auto; width: 90%; }
         h1 { color: #00cf5d; margin: 0 0 5px 0; font-size: 2.5rem; }
-        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
         .card {
             background: #1e1e1e;
             padding: 30px;
@@ -50,7 +50,6 @@
             margin-top: 20px;
         }
         .btn-start { background: #00cf5d; color: #000; }
-        .btn-reset { background: #333; color: #888; margin-top: 10px; font-size: 0.9rem; padding: 10px; }
         .btn-stop { background: #ff3b30; color: #fff; display: none; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         .footer { position: absolute; bottom: 20px; width: 100%; color: #333; font-size: 0.8rem; left: 0; }
@@ -58,4 +57,93 @@
 </head>
 <body>
 
-<div class="container
+<div class="container">
+    <h1>BioFlow 🐺</h1>
+    <div class="card">
+        <div id="label" class="status-text">PŘIPRAVEN</div>
+        <div id="timer">00:00:00</div>
+        <div id="next-label" style="font-size: 0.8rem; color: #555;">Verze: 3.0 (Offline)</div>
+    </div>
+
+    <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
+    <button id="stopBtn" class="btn btn-stop" onclick="stopAlarm()">ZASTAVIT ALARM 🛑</button>
+</div>
+
+<div class="footer">Tvůrce: Darag93</div>
+
+<script>
+    let timeLeft;
+    let timerInterval;
+    let isRunning = false;
+    let currentMode = 'voda'; 
+    
+    const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+    audio.loop = true;
+
+    function updateDisplay() {
+        const h = Math.floor(timeLeft / 3600);
+        const m = Math.floor((timeLeft % 3600) / 60);
+        const s = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+            `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function toggleApp() {
+        if (!isRunning) {
+            // Aktivace notifikací a zvuku (nutné kliknutí uživatele)
+            Notification.requestPermission();
+            audio.play().then(() => audio.pause()); 
+            
+            startPhase();
+            document.getElementById('mainBtn').innerText = "BĚŽÍ NA POZADÍ...";
+            document.getElementById('mainBtn').disabled = true;
+            document.getElementById('mainBtn').style.opacity = "0.5";
+            isRunning = true;
+        }
+    }
+
+    function startPhase() {
+        if (currentMode === 'voda') {
+            timeLeft = 2 * 3600; 
+            document.getElementById('label').innerText = "💧 PIJ VODU (450ml)";
+        } else {
+            timeLeft = 1 * 3600; 
+            document.getElementById('label').innerText = "🚶 AKTIVNÍ CHŮZE (2min)";
+        }
+        updateDisplay();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+            if (timeLeft <= 0) triggerAlarm();
+        }, 1000);
+    }
+
+    function triggerAlarm() {
+        clearInterval(timerInterval);
+        audio.play();
+        document.getElementById('stopBtn').style.display = "block";
+        if (Notification.permission === "granted") {
+            new Notification("BioFlow 🐺", { body: "Čas na akci! " + (currentMode === 'voda' ? "Voda" : "Chůze") });
+        }
+    }
+
+    function stopAlarm() {
+        audio.pause();
+        audio.currentTime = 0;
+        document.getElementById('stopBtn').style.display = "none";
+        currentMode = currentMode === 'voda' ? 'chuze' : 'voda';
+        startPhase();
+    }
+
+    // Registrace Service Workeru
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registrován'))
+                .catch(err => console.log('SW selhal', err));
+        });
+    }
+</script>
+</body>
+</html>
