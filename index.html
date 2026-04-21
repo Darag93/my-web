@@ -3,99 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darag z Moravy</title>
-    <link rel="stylesheet" href="styl.css">
+    <title>Darag - Moravský Vlk 🐺</title>
     <style>
-        /* Styl pro sekci aplikace */
-        .app-download-card {
-            background: #1e1e1e;
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .hero {
+            padding: 40px 20px;
+        }
+        h1 {
+            font-size: 3rem;
+            color: #00cf5d;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(0, 207, 93, 0.4);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .menu {
+            display: grid;
+            gap: 15px;
+            width: 300px;
+        }
+        .menu-link {
+            background: #1a1a1a;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 12px;
             border: 1px solid #333;
+            transition: 0.3s;
+        }
+        .menu-link:hover {
+            border-color: #00cf5d;
+            background: #222;
+        }
+        .app-card {
+            margin-top: 50px;
+            background: linear-gradient(145deg, #1e1e1e, #121212);
+            padding: 25px;
             border-radius: 20px;
-            padding: 20px;
+            border: 2px solid #00cf5d;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
             display: flex;
             align-items: center;
             gap: 20px;
-            margin-top: 40px;
-            max-width: 450px;
-            text-decoration: none;
-            color: white;
-            transition: transform 0.2s, border-color 0.2s;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            width: 320px;
+            transition: transform 0.2s;
         }
-
-        .app-download-card:hover {
-            transform: translateY(-5px);
-            border-color: #00cf5d;
-        }
-
-        .app-icon {
-            width: 80px;
-            height: 80px;
-            background: #121212;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            border: 2px solid #00cf5d;
-        }
-
-        .app-info {
-            text-align: left;
-        }
-
-        .app-title {
-            color: #00cf5d;
-            font-weight: bold;
-            font-size: 1.4rem;
-            margin: 0;
-        }
-
-        .app-desc {
-            color: #888;
-            font-size: 0.9rem;
-            margin: 5px 0 10px 0;
-        }
-
-        .install-badge {
-            display: inline-block;
-            background: #00cf5d;
-            color: black;
-            padding: 5px 15px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        hr { border: 0; border-top: 1px solid #333; margin: 30px 0; }
+        .app-card:hover { transform: scale(1.05); }
+        .app-icon { font-size: 40px; }
+        .app-text { text-align: left; }
+        .app-name { font-weight: bold; font-size: 1.2rem; color: #00cf5d; display: block; }
     </style>
 </head>
 <body>
 
-    <h1>Darag z Moravy</h1>
-    
-    <h2>Menu</h2>
-    <ul>
-        <li><a href="knihy.html">Databáze knih</a></li>
-        <li><a href="#">Články</a></li>
-        <li><a href="#">Projekty</a></li>
-    </ul>
+    <div class="hero">
+        <h1>Vítám tě na webu Daraga</h1>
+        <p class="subtitle">Moravského Vlka 🐺</p>
+    </div>
 
-    <hr>
+    <div class="menu">
+        <a href="knihy.html" class="menu-link">📚 Databáze knih</a>
+        <a href="#" class="menu-link">📰 Články</a>
+        <a href="#" class="menu-link">🛠️ Projekty</a>
+    </div>
 
-    <h3>Moje Aplikace</h3>
-    
-    <a href="bio-vlk-v3.html" class="app-download-card">
+    <a href="bio-vlk-v3.html" class="app-card">
         <div class="app-icon">🐺</div>
-        <div class="app-info">
-            <p class="app-title">BioFlow 3.1</p>
-            <p class="app-desc">Voda & Pohyb. Optimalizuj své tělo.</p>
-            <span class="install-badge">STÁHNOUT / OTEVŘÍT APP</span>
+        <div class="app-text">
+            <span class="app-name">BioFlow 3.1</span>
+            <span style="font-size: 0.8rem; color: #888;">Nainstaluj program do mobilu</span>
         </div>
     </a>
-
-    <br>
-    <p>Vítejte na mém webu.</p>
 
 </body>
 </html>
