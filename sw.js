@@ -1,13 +1,16 @@
-const cacheName = 'bio-vlk-v3-v1';
+const cacheName = 'bio-vlk-v3-v2';
 const filesToCache = [
   './bio-vlk-v3.html',
-  './manifest.json'
+  './manifest.json',
+  './index.html'
 ];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(cacheName).then((cache) => cache.addAll(filesToCache))
+    caches.open(cacheName).then((cache) => {
+      return cache.addAll(filesToCache);
+    })
   );
 });
 
@@ -23,6 +26,8 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+    caches.match(e.request).then((res) => {
+      return res || fetch(e.request);
+    })
   );
 });
