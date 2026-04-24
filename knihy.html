@@ -189,3 +189,119 @@
                             <option>Historie</option>
                             <option>Psychologie a filozofie</option>
                             <option>Umění a kultura</option>
+                            <option>Komiksy</option>
+                            <option>Poezie</option>
+                        </optgroup>
+                        <optgroup label="Praktické a ostatní">
+                            <option>Kuchařky a hobby</option>
+                            <option>Zdraví</option>
+                            <option>Pro děti a mládež</option>
+                            <option>Duchovní literatura</option>
+                            <option>Učebnice a slovníky</option>
+                        </optgroup>
+                    </select>
+
+                    <input type="number" id="year" placeholder="Rok vydání" required>
+                    <input type="text" id="isbn" placeholder="ISBN" required>
+                    <input type="text" id="publisher" placeholder="Vydavatelství" required>
+                    <label>Obrázek obálky:</label>
+                    <input type="file" id="image" accept="image/*" required>
+                    
+                    <button type="submit" class="btn-admin">Uložit knihu</button>
+                </form>
+            </div>
+
+            <h2 id="view-title">Knihy v databázi</h2>
+            <div class="book-grid" id="book-display"></div>
+        </div>
+    </div>
+
+    <script>
+        const PASS = "Itachi";
+        let isAdmin = false;
+        let allBooks = JSON.parse(localStorage.getItem('myBooks')) || [];
+
+        function loginAsReader() {
+            isAdmin = false;
+            showDatabase();
+        }
+
+        function loginAsAdmin() {
+            if(document.getElementById('admin-password').value === PASS) {
+                isAdmin = true;
+                showDatabase();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        function logout() {
+            isAdmin = false;
+            document.getElementById('admin-password').value = '';
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('login-view').classList.add('active');
+            document.getElementById('search-bar-ui').style.display = 'none';
+        }
+
+        function showDatabase() {
+            document.getElementById('login-view').classList.remove('active');
+            document.getElementById('database-view').classList.add('active');
+            document.getElementById('search-bar-ui').style.display = 'flex';
+            document.getElementById('admin-form-area').style.display = isAdmin ? 'block' : 'none';
+            renderBooks(allBooks);
+        }
+
+        // Ukládání knihy
+        document.getElementById('book-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reader = new FileReader();
+            const file = document.getElementById('image').files[0];
+
+            reader.onload = function(event) {
+                const newBook = {
+                    title: document.getElementById('title').value,
+                    author: document.getElementById('author').value,
+                    genre: document.getElementById('genre').value,
+                    year: document.getElementById('year').value,
+                    isbn: document.getElementById('isbn').value,
+                    publisher: document.getElementById('publisher').value,
+                    img: event.target.result
+                };
+                allBooks.push(newBook);
+                localStorage.setItem('myBooks', JSON.stringify(allBooks));
+                document.getElementById('book-form').reset();
+                renderBooks(allBooks);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Vykreslení knih
+        function renderBooks(data) {
+            const container = document.getElementById('book-display');
+            container.innerHTML = '';
+            data.forEach(b => {
+                container.innerHTML += `
+                    <div class="book-card">
+                        <img src="${b.img}">
+                        <p class="genre-tag">${b.genre}</p>
+                        <h3>${b.title}</h3>
+                        <p><strong>${b.author}</strong></p>
+                        <p style="font-size:0.8em; color:gray;">${b.publisher} (${b.year})<br>ISBN: ${b.isbn}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Funkce vyhledávání
+        function filterBooks() {
+            const query = document.getElementById('book-search').value.toLowerCase();
+            const filtered = allBooks.filter(b => 
+                b.title.toLowerCase().includes(query) || 
+                b.author.toLowerCase().includes(query) || 
+                b.genre.toLowerCase().includes(query)
+            );
+            renderBooks(filtered);
+        }
+    </script>
+</body>
+</html>
