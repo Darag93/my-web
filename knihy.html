@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Daragová knihovna</title>
+    <style>
+        :root { --dark: #2c3e50; --accent: #e67e22; --light: #f0f2f5; --success: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--light); color: #333; }
+        
+        /* HEADER */
+        .hero { 
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000');
+            background-size: cover; background-position: center; height: 200px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* NAVIGACE */
+        nav { background: var(--dark); padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .nav-links a, .nav-links button { color: white; text-decoration: none; background: #34495e; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 5px; }
+        .search-box input { padding: 8px; border-radius: 4px; border: none; width: 250px; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        /* SEKCE */
+        section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h2 { border-left: 5px solid var(--accent); padding-left: 15px; color: var(--dark); }
+
+        /* KARTY KNIH (Novinky) */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .book-card { border: 1px solid #eee; padding: 10px; text-align: center; border-radius: 8px; transition: transform 0.2s; }
+        .book-card:hover { transform: translateY(-5px); }
+        .book-card img { width: 100%; height: 300px; object-fit: cover; border-radius: 4px; }
+
+        /* SEZNAM KNIH (Tabulka) */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        table th { background: #f8f9fa; }
+
+        /* TOP 3 ŽEBŘÍČEK */
+        .top-list { display: flex; gap: 15px; list-style: none; padding: 0; }
+        .top-item { background: #fff3e0; padding: 15px; border-radius: 8px; flex: 1; text-align: center; border: 1px solid var(--accent); position: relative; }
+        .rank { position: absolute; top: -10px; left: -10px; background: var(--accent); color: white; width: 30px; height: 30px; border-radius: 50%; line-height: 30px; font-weight: bold; }
+
+        /* DISKUZE */
+        .chat-box { height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; background: #fafafa; }
+        .comment { margin-bottom: 10px; padding: 5px; border-bottom: 1px dotted #ccc; font-size: 0.9em; }
+
+        /* ADMIN FORM */
+        #admin-panel { background: #e8f5e9; border: 2px solid var(--success); }
+        input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-add { background: var(--success); color: white; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+
+        .view-section { display: none; }
+        .active { display: block; }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <h1>Daragová knihovna</h1>
+</header>
+
+<nav>
+    <div class="nav-links">
+        <a href="https://darag93.github.io/my-web/">Zpět na web</a>
+        <button onclick="showSection('login-view')">Přihlášení</button>
+    </div>
+    <div class="search-box">
+        <input type="text" id="mainSearch" placeholder="Hledat knihu, autora, žánr..." onkeyup="globalSearch()">
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="login-view" class="view-section active" style="text-align: center; max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 10px;">
+        <h2>Vstup</h2>
+        <button onclick="login(false)" style="width:100%; padding:10px; background:var(--dark); color:white; border:none; cursor:pointer; margin-bottom:10px;">Vstoupit jako Čtenář</button>
+        <hr>
+        <input type="password" id="adminPass" placeholder="Heslo pro Admina">
+        <button onclick="login(true)" style="width:100%; padding:10px; background:var(--success); color:white; border:none; cursor:pointer;">Přihlásit jako Admin</button>
+    </div>
+
+    <div id="main-view" class="view-section">
+        
+        <section id="admin-panel" style="display:none;">
+            <h2>➕ Přidat novou knihu (Admin)</h2>
+            <form id="bookForm">
+                <input type="text" id="title" placeholder="Název knihy" required>
+                <input type="text" id="author" placeholder="Autor" required>
+                <select id="genre">
+                    <option disabled selected>Vyberte žánr...</option>
+                    <optgroup label="Beletrie">
+                        <option>Beletrie a vyprávění</option><option>Detektivky, krimi</option><option>Dobrodružné</option><option>Fantasy</option><option>Horory</option><option>Humor</option><option>Novely</option><option>Povídky</option><option>Romány</option><option>Sci-fi</option><option>Thrillery</option><option>Westerny</option>
+                    </optgroup>
+                    <optgroup label="Naučná a ostatní">
+                        <option>Biografie</option><option>Cestopisy</option><option>Historie</option><option>Psychologie</option><option>Filozofie</option><option>Komiksy</option><option>Poezie</option><option>Kuchařky</option><option>Pro děti</option><option>Učebnice</option><option>Jiné</option>
+                    </optgroup>
+                </select>
+                <input type="number" id="year" placeholder="Rok vydání">
+                <input type="text" id="isbn" placeholder="ISBN">
+                <input type="number" id="score" placeholder="Moje hodnocení (1-10)" min="1" max="10">
+                <label>Obrázek obálky:</label>
+                <input type="file" id="imgFile" accept="image/*" required>
+                <button type="submit" class="btn-add">Přidat do knihovny</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>🏆 Žebříček nejoblíbenějších</h2>
+            <div class="top-list" id="top3">
+                </div>
+        </section>
+
+        <section>
+            <h2>✨ Novinky ve výběru</h2>
+            <div class="grid" id="news-grid">
+                </div>
+        </section>
+
+        <section>
+            <h2>📚 Celý seznam knih</h2>
+            <table id="book-table">
+                <thead>
+                    <tr>
+                        <th>Název</th>
+                        <th>Autor</th>
+                        <th>Žánr</th>
+                        <th>Rok</th>
+                        <th>Admin ⭐</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>💬 Celková diskuze a komentáře</h2>
+            <div class="chat-box" id="chat">
+                <div class="comment"><b>Admin:</b> Vítejte v diskuzi! Jakou knihu jste četli naposledy?</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="chatMsg" placeholder="Napište zprávu nebo komentář...">
+                <button onclick="sendMsg()" style="padding:10px; background:var(--accent); color:white; border:none; border-radius:4px; cursor:pointer;">Odeslat</button>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    const ADMIN_KEY = "Itachi";
+    let isAdmin = false;
+    let books = JSON.parse(localStorage.getItem('darag_books')) || [];
+    let messages = JSON.parse(localStorage.getItem('darag_chat')) || [];
+
+    function showSection(id) {
+        document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function login(adminReq) {
+        if(adminReq) {
+            if(document.getElementById('adminPass').value === ADMIN_KEY) {
+                isAdmin = true;
+                document.getElementById('admin-panel').style.display = 'block';
+            } else { alert("Chybné heslo!"); return; }
+        }
+        showSection('main-view');
+        renderAll();
+    }
+
+    // PŘIDÁNÍ KNIHY
+    document.getElementById('bookForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const newBook = {
+                id: Date.now(),
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                genre: document.getElementById('genre').value,
+                year: document.getElementById('year').value,
+                isbn: document.getElementById('isbn').value,
+                score: document.getElementById('score').value,
+                img: event.target.result,
+                dateAdded: new Date()
+            };
+            books.unshift(newBook); // Přidá na začátek
+            localStorage.setItem('darag_books', JSON.stringify(books));
+            renderAll();
+            this.reset();
+        };
+        reader.readAsDataURL(document.getElementById('imgFile').files[0]);
+    });
+
+    function renderAll() {
+        renderNews();
+        renderTable(books);
+        renderTop3();
+        renderChat();
+    }
+
+    // NOVINKY (Prvních 4)
+    function renderNews() {
+        const grid = document.getElementById('news-grid');
+        grid.innerHTML = '';
+        books.slice(0, 4).forEach(b => {
+            grid.innerHTML += `
+                <div class="book-card">
+                    <img src="${b.img}">
+                    <h4>${b.title}</h4>
+                    <p style="font-size:0.8em; color:gray">${b.author}</p>
+                    <b style="color:var(--accent)">⭐ ${b.score}/10</b>
+                </div>
+            `;
+        });
+    }
+
+    // TABULKA (Seznam)
+    function renderTable(data) {
+        const body = document.getElementById('table-body');
+        body.innerHTML = '';
+        data.forEach(b => {
+            body.innerHTML += `
+                <tr>
+                    <td><b>${b.title}</b></td>
+                    <td>${b.author}</td>
+                    <td>${b.genre}</td>
+                    <td>${b.year}</td>
+                    <td>${b.score}/10</td>
+                </tr>
+            `;
+        });
+    }
+
+    // TOP 3 (Podle hodnocení)
+    function renderTop3() {
+        const top3Div = document.getElementById('top3');
+        const sorted = [...books].sort((a,b) => b.score - a.score).slice(0, 3);
+        top3Div.innerHTML = '';
+        sorted.forEach((b, i) => {
+            top3Div.innerHTML += `
+                <div class="top-item">
+                    <div class="rank">${i+1}</div>
+                    <b>${b.title}</b><br><small>${b.author}</small>
+                </div>
+            `;
+        });
+    }
+
+    // VYHLEDÁVÁNÍ
+    function globalSearch() {
+        const q = document.getElementById('mainSearch').value.toLowerCase();
+        const filtered = books.filter(b => 
+            b.title.toLowerCase().includes(q) || 
+            b.author.toLowerCase().includes(q) || 
+            b.genre.toLowerCase().includes(q)
+        );
+        renderTable(filtered);
+    }
+
+    // CHAT / KOMENTÁŘE
+    function sendMsg() {
+        const msg = document.getElementById('chatMsg').value;
+        if(!msg) return;
+        const name = isAdmin ? "Admin" : "Čtenář";
+        messages.push({ user: name, text: msg });
+        localStorage.setItem('darag_chat', JSON.stringify(messages));
+        document.getElementById('chatMsg').value = '';
+        renderChat();
+    }
+
+    function renderChat() {
+        const chat = document.getElementById('chat');
+        chat.innerHTML = messages.map(m => `<div class="comment"><b>${m.user}:</b> ${m.text}</div>`).join('');
+        chat.scrollTop = chat.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
