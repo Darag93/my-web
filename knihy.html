@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Daragová knihovna</title>
+    <style>
+        :root { --dark: #1a1a1a; --gold: #d4af37; --bg: #f4f1ea; --card: #ffffff; --accent: #8b0000; }
+        body { font-family: 'Segoe UI', serif; margin: 0; background-color: var(--bg); color: #333; }
+
+        /* HEADER */
+        .hero { 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000');
+            background-size: cover; background-position: center; height: 150px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* LIŠTA */
+        nav { 
+            background: var(--dark); padding: 0 20px; display: flex; justify-content: space-between; 
+            align-items: center; position: sticky; top: 0; z-index: 1000; height: 60px;
+        }
+        .nav-menu { display: flex; gap: 10px; }
+        .nav-menu button { background: transparent; color: white; border: none; padding: 10px; cursor: pointer; font-size: 14px; }
+        .nav-menu button:hover { color: var(--gold); }
+        
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .search-box input { padding: 8px; border-radius: 4px; border: none; width: 150px; background: #333; color: white; }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        /* PŘEPÍNÁNÍ STRÁNEK */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* FORMULÁŘ ADMINA */
+        .admin-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .full { grid-column: span 3; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+
+        /* KARTY KNIH */
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .book-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; padding-bottom: 15px; }
+        .book-card img { width: 100%; height: 320px; object-fit: cover; }
+        .rating-admin { color: var(--accent); font-weight: bold; font-size: 1.1em; }
+
+        /* TOP 10 */
+        .top-item { background: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; display: flex; align-items: center; border-left: 5px solid var(--gold); }
+        .rank { font-size: 24px; font-weight: bold; margin-right: 20px; color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <h1>Daragová knihovna</h1>
+</header>
+
+<nav id="main-nav" style="display: none;">
+    <div class="nav-menu">
+        <button onclick="showPage('page-news')">✨ Novinky</button>
+        <button onclick="showPage('page-top10')">🏆 TOP 10</button>
+        <button onclick="showPage('page-all')">📚 Knihy</button>
+        <button onclick="showPage('page-chat')">💬 Diskuze</button>
+        <button id="admin-btn" onclick="showPage('page-admin')" style="display:none; color:var(--gold);">⚙️ Přidat</button>
+    </div>
+    <div class="nav-right">
+        <div class="search-box"><input type="text" id="searchInput" placeholder="Hledat..." onkeyup="filterBooks()"></div>
+        <button onclick="location.reload()" style="background:none; border:1px solid white; color:white; cursor:pointer;">Odhlásit</button>
+        <a href="https://darag93.github.io/my-web/" style="color:white; text-decoration:none; font-size: 13px;">Zpět na web</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="page-login" class="page active">
+        <div style="max-width: 400px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            <h2>Vítejte</h2>
+            <button onclick="doLogin(false)" style="width:100%; padding:12px; background:var(--dark); color:white; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">Vstoupit bez přihlášení</button>
+            <hr style="margin:20px 0;">
+            <h3>Admin přístup</h3>
+            <input type="password" id="passInput" placeholder="Heslo..."><br><br>
+            <button onclick="doLogin(true)" style="width:100%; padding:12px; background:var(--accent); color:white; border:none; cursor:pointer; border-radius:4px;">Přihlásit se</button>
+        </div>
+    </div>
+
+    <div id="page-news" class="page">
+        <h2>✨ Poslední přidané knihy</h2>
+        <div class="book-grid" id="news-grid"></div>
+    </div>
+
+    <div id="page-top10" class="page">
+        <h2>🏆 Žebříček TOP 10</h2>
+        <div id="top10-list"></div>
+    </div>
+
+    <div id="page-all" class="page">
+        <h2>📚 Kompletní seznam</h2>
+        <div class="book-grid" id="all-grid"></div>
+    </div>
+
+    <div id="page-admin" class="page">
+        <h2>⚙️ Administrace - Přidat knihu</h2>
+        <form id="bookForm" class="admin-form">
+            <input type="text" id="title" placeholder="Název knihy" required>
+            <input type="text" id="author" placeholder="Autor" required>
+            <input type="text" id="genre" placeholder="Žánr (ruční zápis)">
+            <textarea id="desc" class="full" placeholder="Anotace / O čem kniha je..."></textarea>
+            <input type="text" id="year" placeholder="Rok vydání">
+            <input type="text" id="pub" placeholder="Vydavatelství">
+            <select id="binding">
+                <option>Pevná vazba</option><option>Brožovaná</option><option>E-book</option>
+            </select>
+            <input type="text" id="isbn" placeholder="ISBN">
+            <input type="number" id="rating" placeholder="Hodnocení Admin (1-10)" min="1" max="10">
+            <select id="status">
+                <option>Přečteno</option><option>Právě čtu</option><option>Chystám se</option>
+            </select>
+            <input type="text" id="loc" placeholder="Umístění v bytě">
+            <input type="text" id="price" placeholder="Pořizovací cena">
+            <input type="text" id="lang" placeholder="Jazyk">
+            <input type="file" id="img" accept="image/*" required class="full">
+            <button type="submit" class="btn-save
