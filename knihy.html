@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daragova knihovna</title>
+    <style>
+        :root { --dark:#1a1a1a; --gold:#d4af37; --bg:#f4f1ea; --accent:#8b0000; }
+        body { margin:0; font-family:'Segoe UI', sans-serif; background:var(--bg); }
+        
+        /* HERO SEKCE - Nový obrázek staré knihovny */
+        .hero { 
+            height:220px; display:flex; justify-content:center; align-items:center; color:white; 
+            text-align:center; font-size:30px; font-weight:bold;
+            background: linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)), 
+            url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80');
+            background-size:cover; background-position:center;
+        }
+
+        /* NAVIGACE */
+        #main-nav { 
+            display:none; background:var(--dark); color:white; padding:10px 5%; 
+            justify-content:space-between; align-items:center; position: sticky; top: 0; z-index: 100;
+        }
+        .menu { display: flex; align-items: center; gap: 10px; }
+        .menu button { background:none; border:none; color:white; cursor:pointer; font-weight: bold; }
+        .menu button:hover { color:var(--gold); }
+        #search { padding:8px; border-radius: 20px; border: none; width: 200px; }
+
+        /* STRÁNKY */
+        .page { display:none; padding:20px; max-width: 1200px; margin: auto; }
+        .active { display:block !important; }
+
+        /* LOGIN KARTA */
+        .login-container { max-width:400px; margin:50px auto; background:white; padding:30px; text-align:center; border-radius:10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .login-container input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; }
+        .btn-main { background: var(--dark); color: white; padding: 10px 20px; border: none; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn-logout { color: #ff4d4d !important; } /* Červené tlačítko odhlásit */
+
+        /* KNIŽNÍ KARTA */
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:20px; }
+        .card { background:white; border-radius:10px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,.1); }
+        .card img { width:100%; height:350px; object-fit:cover; }
+        .card-content { padding:15px; }
+
+        /* FORMULÁŘ */
+        .admin-form input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+<div class="hero">Daragova knihovna</div>
+
+<div id="main-nav">
+    <div class="menu">
+        <button onclick="openPage('all')">📚 Knihy</button>
+        <button onclick="openPage('add')" id="addBtn" style="display:none;">➕ Přidat</button>
+        <button onclick="window.location.href='https://darag93.github.io/my-web/'">🌐 Web</button>
+        <button onclick="logout()" class="btn-logout">🚪 Odhlásit</button>
+    </div>
+    <input id="search" placeholder="Hledat..." onkeyup="searchBooks()">
+</div>
+
+<div id="login-page" class="page active">
+    <div class="login-container">
+        <h2>Vstup do knihovny</h2>
+        <button class="btn-main" onclick="handleLogin(false)">Vstoupit jako Čtenář</button>
+        <hr style="margin: 20px 0; opacity: 0.2;">
+        <h3>Admin přístup</h3>
+        <input id="admin-pass" type="password" placeholder="Heslo">
+        <button class="btn-main" style="background:var(--accent)" onclick="handleLogin(true)">Přihlásit jako Admin</button>
+    </div>
+</div>
+
+<div id="all" class="page">
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h2>📚 Celá sbírka</h2>
+        <button onclick="logout()" style="cursor:pointer; background:none; border:1px solid #ccc; padding:5px 10px; border-radius:5px;">👤 Přihlásit jiného uživatele</button>
+    </div>
+    <div id="allBox" class="grid"></div>
+</div>
+
+<div id="add" class="page">
+    <h2>➕ Přidat novou knihu</h2>
+    <form id="book-form" class="admin-form">
+        <input id="t" placeholder="Název knihy" required>
+        <input id="a" placeholder="Autor" required>
+        <input id="g" placeholder="Žánr">
+        <input id="y" type="number" placeholder="Rok vydání">
+        <input id="isbn" placeholder="ISBN">
+        <input id="r" type="number" placeholder="Hodnocení 1-10">
+        <input id="img" type="file" accept="image/*" required>
+        <button type="submit" class="btn-main">💾 Uložit knihu</button>
+    </form>
+</div>
+
+<script>
+    let admin = false;
+    let books = JSON.parse(localStorage.getItem('darag_books')) || [];
+
+    function handleLogin(isAdminLogin) {
+        if (isAdminLogin) {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass !== "Itachi") {
+                alert("Špatné heslo!"); return;
+            }
+            admin = true;
+            document.getElementById('addBtn').style.display = "inline-block";
+        }
+        document.getElementById('login-page').classList.remove('active');
+        document.getElementById('main-nav').style.display = "flex";
+        openPage('all');
+        render();
+    }
+
+    function logout() {
+        admin = false;
+        document.getElementById('addBtn').style.display = "none";
+        document.getElementById('main-nav').style.display = "none";
+        document.getElementById('admin-pass').value = "";
+        openPage('login-page');
+    }
+
+    function openPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    document.getElementById('book-form').onsubmit = function(e) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = event => {
+            books.unshift({
+                id: Date.now(),
+                title: document.getElementById('t').value,
+                author: document.getElementById('a').value,
+                genre: document.getElementById('g').value,
+                year: document.getElementById('y').value,
+                isbn: document.getElementById('isbn').value,
+                rating: document.getElementById('r').value,
+                img: event.target.result
+            });
+            localStorage.setItem('darag_books', JSON.stringify(books));
+            this.reset();
+            render();
+            openPage('all');
+        };
+        reader.readAsDataURL(document.getElementById('img').files[0]);
+    };
+
+    function render() {
+        const createCard = b => `
+            <div class="card">
+                <img src="${b.img}">
+                <div class="card-content">
+                    <h3>${b.title}</h3>
+                    <p><b>Autor:</b> ${b.author}</p>
+                    <p><b>Žánr:</b> ${b.genre || "-"}</p>
+                    <b style="color:var(--accent)">⭐ Hodnocení: ${b.rating || 0}/10</b>
+                </div>
+            </div>`;
+        document.getElementById('allBox').innerHTML = books.map(createCard).join('');
+    }
+
+    function searchBooks() {
+        const q = document.getElementById('search').value.toLowerCase();
+        const filtered = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+        document.getElementById('allBox').innerHTML = filtered.map(b => `
+            <div class="card">
+                <img src="${b.img}">
+                <div class="card-content"><h3>${b.title}</h3><p>${b.author}</p></div>
+            </div>`).join('');
+    }
+</script>
+</body>
+</html>
