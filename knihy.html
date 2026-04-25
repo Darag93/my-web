@@ -62,4 +62,190 @@
         table th { background: #f8f9fa; color: var(--dark); }
 
         /* DISKUZE */
-        .chat-box { height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #fafafa; margin-bottom: 1
+        .chat-box { height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; background: #fafafa; margin-bottom: 10px; border-radius: 4px; }
+        .comment { margin-bottom: 10px; padding: 8px; border-radius: 4px; background: white; border-left: 3px solid var(--accent); }
+
+        /* LOGIN */
+        .view-section { display: none; }
+        .active { display: block; }
+        #admin-panel { border: 2px solid var(--success); background: #f1f8f4; }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <h1>Daragová knihovna</h1>
+</header>
+
+<nav>
+    <div class="nav-menu">
+        <a href="#section-top10">🏆 TOP 10</a>
+        <a href="#section-news">✨ Novinky</a>
+        <a href="#section-all">📚 Knihy</a>
+        <a href="#section-chat">💬 Diskuze</a>
+    </div>
+
+    <div class="nav-right">
+        <div class="search-box">
+            <input type="text" id="mainSearch" placeholder="Hledejte..." onkeyup="globalSearch()">
+        </div>
+        <button id="loginBtn" onclick="showLogin()">Přihlášení</button>
+        <a href="https://darag93.github.io/my-web/">Zpět na web</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="login-view" class="view-section active">
+        <div style="text-align: center; max-width: 400px; margin: 80px auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <h2 style="border:none; padding:0;">Vítejte v knihovně</h2>
+            <button onclick="login(false)" style="width:100%; padding:14px; background:var(--dark); color:white; border:none; border-radius:6px; cursor:pointer; margin-bottom:15px; font-weight:bold;">Vstoupit bez přihlášení</button>
+            <div style="margin: 20px 0; color: #999;">nebo</div>
+            <input type="password" id="adminPass" placeholder="Zadejte admin heslo...">
+            <button onclick="login(true)" style="width:100%; padding:14px; background:var(--success); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Přihlásit jako Admin</button>
+        </div>
+    </div>
+
+    <div id="main-view" class="view-section">
+        
+        <section id="admin-panel" style="display:none;">
+            <h2>➕ Přidat novou knihu (Admin)</h2>
+            <form id="bookForm" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <input type="text" id="title" placeholder="Název knihy" required>
+                <input type="text" id="author" placeholder="Autor" required>
+                <select id="genre">
+                    <option>Beletrie a vyprávění</option><option>Detektivky</option><option>Fantasy</option><option>Sci-fi</option><option>Romány</option><option>Historie</option><option>Pro děti</option>
+                </select>
+                <input type="number" id="year" placeholder="Rok vydání">
+                <input type="number" id="score" placeholder="Hodnocení (1-10)" min="1" max="10">
+                <input type="file" id="imgFile" accept="image/*" required>
+                <button type="submit" style="grid-column: span 2; background:var(--success); color:white; padding:12px; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">ULOŽIT KNIHU</button>
+            </form>
+        </section>
+
+        <section id="section-news">
+            <h2>✨ Novinky</h2>
+            <div class="grid" id="news-grid"></div>
+        </section>
+
+        <section id="section-top10">
+            <h2>🏆 Žebříček TOP 10</h2>
+            <div class="top-10-container" id="top10">
+                </div>
+        </section>
+
+        <section id="section-all">
+            <h2>📚 Knihovna (Seznam)</h2>
+            <table id="book-table">
+                <thead>
+                    <tr><th>Název</th><th>Autor</th><th>Žánr</th><th>Rok</th><th>Admin ⭐</th></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </section>
+
+        <section id="section-chat">
+            <h2>💬 Celková diskuze</h2>
+            <div class="chat-box" id="chat"></div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="chatMsg" placeholder="Napište zprávu...">
+                <button onclick="sendMsg()" style="padding:0 25px; background:var(--accent); color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Odeslat</button>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    const ADMIN_KEY = "Itachi";
+    let isAdmin = false;
+    let books = JSON.parse(localStorage.getItem('darag_v4_books')) || [];
+    let chat = JSON.parse(localStorage.getItem('darag_v4_chat')) || [];
+
+    function showLogin() { location.reload(); } // Pro jednoduchost odhlášení restartuje web
+
+    function login(adminReq) {
+        if(adminReq) {
+            if(document.getElementById('adminPass').value === ADMIN_KEY) {
+                isAdmin = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('loginBtn').innerText = "Odhlásit (Admin)";
+            } else { alert("Chybné heslo!"); return; }
+        } else {
+            document.getElementById('loginBtn').innerText = "Odhlásit (Čtenář)";
+        }
+        document.getElementById('login-view').classList.remove('active');
+        document.getElementById('main-view').classList.add('active');
+        renderAll();
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const newBook = {
+                id: Date.now(),
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                genre: document.getElementById('genre').value,
+                year: document.getElementById('year').value,
+                score: parseInt(document.getElementById('score').value),
+                img: event.target.result
+            };
+            books.unshift(newBook);
+            localStorage.setItem('darag_v4_books', JSON.stringify(books));
+            renderAll();
+            document.getElementById('bookForm').reset();
+        };
+        reader.readAsDataURL(document.getElementById('imgFile').files[0]);
+    });
+
+    function renderAll() {
+        // Novinky
+        document.getElementById('news-grid').innerHTML = books.slice(0, 4).map(b => `
+            <div class="book-card"><img src="${b.img}"><h4>${b.title}</h4><b style="color:var(--accent)">⭐ ${b.score}/10</b></div>
+        `).join('');
+
+        // Tabulka
+        document.getElementById('table-body').innerHTML = books.map(b => `
+            <tr><td><b>${b.title}</b></td><td>${b.author}</td><td>${b.genre}</td><td>${b.year}</td><td>${b.score}/10</td></tr>
+        `).join('');
+
+        // TOP 10
+        const sorted = [...books].sort((a,b) => b.score - a.score).slice(0, 10);
+        document.getElementById('top10').innerHTML = sorted.map((b, i) => `
+            <div class="top-item">
+                <div class="rank-num">${i+1}</div>
+                <div><b>${b.title}</b><br><small>${b.score}/10</small></div>
+            </div>
+        `).join('');
+
+        renderChat();
+    }
+
+    function globalSearch() {
+        const q = document.getElementById('mainSearch').value.toLowerCase();
+        const filtered = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+        document.getElementById('table-body').innerHTML = filtered.map(b => `
+            <tr><td><b>${b.title}</b></td><td>${b.author}</td><td>${b.genre}</td><td>${b.year}</td><td>${b.score}/10</td></tr>
+        `).join('');
+    }
+
+    function sendMsg() {
+        const input = document.getElementById('chatMsg');
+        if(!input.value) return;
+        chat.push({ user: isAdmin ? "Admin" : "Čtenář", text: input.value });
+        localStorage.setItem('darag_v4_chat', JSON.stringify(chat));
+        input.value = '';
+        renderChat();
+    }
+
+    function renderChat() {
+        const box = document.getElementById('chat');
+        box.innerHTML = chat.map(m => `<div class="comment"><b>${m.user}:</b> ${m.text}</div>`).join('');
+        box.scrollTop = box.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
