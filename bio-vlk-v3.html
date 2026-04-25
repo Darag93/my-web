@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>BioFlow 🐺</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#121212">
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #121212; color: white; margin: 0; display: flex; flex-direction: column; justify-content: center; height: 100vh; overflow: hidden; }
+        .container { padding: 20px; max-width: 400px; margin: auto; }
+        h1 { color: #00cf5d; margin: 0; text-shadow: 0 0 10px rgba(0, 207, 93, 0.3); }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 25px; border: 1px solid #333; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #timer { font-size: 4rem; color: #00cf5d; font-weight: bold; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .label { color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .btn { width: 100%; padding: 20px; border-radius: 50px; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-start { background: #00cf5d; color: black; }
+        .btn-stop-timer { background: #ff9800; color: white; display: none; }
+        .btn-stop-alarm { background: #ff3b30; color: white; display: none; animation: blink 1s infinite; }
+        .btn-install { background: #2196F3; color: white; display: none; margin-bottom: 20px; font-size: 1rem; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        .music-box { margin: 15px 0; background: #252525; padding: 10px; border-radius: 15px; border: 1px dashed #444; }
+        input[type="file"] { color: #888; font-size: 0.7rem; width: 100%; }
+        .footer-info { margin-top: 15px; font-size: 0.8rem; color: #444; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button id="installBtn" class="btn btn-install" onclick="installApp()">📥 STÁHNOUT APLIKACI NA PLOCHU</button>
+
+    <h1>BioFlow 🐺</h1>
+    <div class="card">
+        <div id="label" class="label">PŘIPRAVEN</div>
+        <div id="timer">00:00:00</div>
+        <div id="info" style="font-size: 0.8rem; color: #555; margin-top: 10px;">Režim: 1h Voda / 1h Aktivita</div>
+    </div>
+
+    <div class="music-box">
+        <span style="font-size: 0.7rem; color: #00cf5d; font-weight: bold;">VLASTNÍ ZVUK (MP3):</span><br>
+        <input type="file" id="musicInput" accept="audio/*">
+    </div>
+
+    <button id="mainBtn" class="btn btn-start" onclick="toggleApp()">SPUSTIT PROGRAM 🐺</button>
+    <button id="stopTimerBtn" class="btn btn-stop-timer" onclick="stopProgram()">ZASTAVIT PROGRAM 🛑</button>
+    <button id="stopBtn" class="btn btn-stop-alarm" onclick="stopAlarm()">VYPNOUT BUDÍK 🛑</button>
+
+    <div class="footer-info">Autor: Darag93</div>
+</div>
+
+<script>
+    let timeLeft;
+    let timerInterval;
+    let isRunning = false;
+    let currentMode = 'voda'; 
+    let audio = new Audio();
+    audio.loop = true;
+
+    // --- INSTALACE ---
