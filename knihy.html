@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Daragova knihovna</title>
+
+<style>
+:root { --dark:#1a1a1a; --gold:#d4af37; --bg:#f4f1ea; --accent:#8b0000; }
+
+body { margin:0; font-family:Segoe UI; background:var(--bg); }
+
+/* HEADER */
+.hero {
+    height:180px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
+    url('https://images.unsplash.com/photo-1507842217343-583bb7270b66');
+}
+
+/* NAV */
+#nav {
+    display:none;
+    background:var(--dark);
+    color:white;
+    padding:10px;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.menu button {
+    background:none;
+    border:none;
+    color:white;
+    margin-right:10px;
+    cursor:pointer;
+}
+
+.menu button:hover { color:var(--gold); }
+
+/* PAGES */
+.page { display:none; padding:20px; }
+.active { display:block; }
+
+/* LOGIN */
+.login {
+    max-width:400px;
+    margin:50px auto;
+    background:white;
+    padding:30px;
+    text-align:center;
+    border-radius:8px;
+}
+
+/* BOOK */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:20px;
+}
+
+.card {
+    background:white;
+    border-radius:8px;
+    overflow:hidden;
+}
+
+.card img {
+    width:100%;
+    height:300px;
+    object-fit:cover;
+}
+.card div { padding:10px; }
+
+/* CHAT */
+.chatbox {
+    background:white;
+    padding:15px;
+    border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="hero"><h1>Daragova knihovna</h1></div>
+
+<!-- NAV -->
+<div id="nav">
+    <div class="menu">
+        <button onclick="openPage('news')">✨ Novinky</button>
+        <button onclick="openPage('top')">🏆 TOP</button>
+        <button onclick="openPage('all')">📚 Knihy</button>
+        <button onclick="openPage('chat')">💬 Diskuze</button>
+        <button id="addBtn" onclick="openPage('add')" style="display:none;">➕ Přidat</button>
+    </div>
+    <input id="search" placeholder="Hledat..." onkeyup="searchBooks()">
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="page active">
+    <div class="login">
+        <h2>Vstup do knihovny</h2>
+        <button onclick="login(false)">Vstoupit bez přihlášení</button>
+        <hr>
+        <input id="pass" type="password" placeholder="Admin heslo">
+        <button onclick="login(true)">Přihlásit jako admin</button>
+    </div>
+</div>
+
+<!-- PAGES -->
+<div id="news" class="page"><h2>Novinky</h2><div id="newsBox" class="grid"></div></div>
+<div id="all" class="page"><h2>Knihy</h2><div id="allBox" class="grid"></div></div>
+<div id="top" class="page"><h2>TOP</h2><div id="topBox"></div></div>
+
+<!-- ADD -->
+<div id="add" class="page">
+<h2>Přidat knihu</h2>
+<form id="form">
+<input id="t" placeholder="Název" required><br><br>
+<input id="a" placeholder="Autor" required><br><br>
+<input id="r" type="number" placeholder="Hodnocení 1-10"><br><br>
+<input id="img" type="file" required><br><br>
+<button>Uložit</button>
+</form>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="page">
+<h2>Diskuze</h2>
+<div class="chatbox">
+<div id="chatList"></div>
+<br>
+<input id="msg"><button onclick="send()">Odeslat</button>
+</div>
+</div>
+
+<script>
+let admin=false;
+let books=JSON.parse(localStorage.getItem('books'))||[];
+let chat=JSON.parse(localStorage.getItem('chat'))||[];
+
+/* LOGIN */
+function login(isAdminLogin){
+    if(isAdminLogin){
+        if(document.getElementById('pass').value!=="Itachi"){
+            alert("Špatné heslo");
+            return;
+        }
+        admin=true;
+        document.getElementById('addBtn').style.display="inline";
+    }
+
+    document.getElementById('login').classList.remove('active');
+    document.getElementById('nav').style.display="flex";
+
+    openPage('news');
+    render();
+}
+
+/* NAV */
+function openPage(id){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+/* ADD BOOK */
+document.getElementById('form').onsubmit=function(e){
+    e.preventDefault();
+
+    const reader=new FileReader();
+    reader.onload=e=>{
+        books.unshift({
+            title:t.value,
+            author:a.value,
+            rating:r.value,
+            img:e.target.result
+        });
+
+        localStorage.setItem('books',JSON.stringify(books));
+        this.reset();
+        render();
+    };
+
+    reader.readAsDataURL(img.files[0]);
+};
+
+/* RENDER */
+function render(){
+    const card=b=>`
+    <div class="card">
+        <img src="${b.img}">
+        <div>
+            <h3>${b.title}</h3>
+            <p>${b.author}</p>
+            <b>⭐ ${b.rating}/10</b>
+        </div>
+    </div>`;
+
+    newsBox.innerHTML=books.slice(0,4).map(card).join('');
+    allBox.innerHTML=books.map(card).join('');
+
+    const top=[...books].sort((a,b)=>b.rating-a.rating);
+    topBox.innerHTML=top.map((b,i)=>`#${i+1} ${b.title}`).join('<br>');
+
+    chatList.innerHTML=chat.map(m=>`<div><b>${m.u}:</b> ${m.t}</div>`).join('');
+}
+
+/* SEARCH */
+function searchBooks(){
+    const q=search.value.toLowerCase();
+    const f=books.filter(b=>b.title.toLowerCase().includes(q)||b.author.toLowerCase().includes(q));
+    allBox.innerHTML=f.map(b=>`<div>${b.title}</div>`).join('');
+    openPage('all');
+}
+
+/* CHAT */
+function send(){
+    if(!msg.value) return;
+
+    chat.push({
+        u: admin ? "Admin" : "Host",
+        t: msg.value
+    });
+
+    localStorage.setItem('chat',JSON.stringify(chat));
+    msg.value="";
+    render();
+}
+</script>
+
+</body>
+</html>
