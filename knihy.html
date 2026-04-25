@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daragova knihovna</title>
+    <style>
+        :root { --dark:#1a1a1a; --gold:#d4af37; --bg:#f4f1ea; --accent:#8b0000; }
+        body { margin:0; font-family:'Segoe UI', sans-serif; background:var(--bg); }
+        
+        /* Úvodní obrázek */
+        .hero { 
+            height:220px; display:flex; justify-content:center; align-items:center; color:white; 
+            font-size:30px; font-weight:bold;
+            background: linear-gradient(rgba(0,0,0,.7), rgba(0,0,0,.7)), 
+            url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1600&q=80');
+            background-size:cover; background-position:center;
+        }
+
+        /* Navigace */
+        #main-nav { display:none; background:var(--dark); color:white; padding:10px 5%; justify-content:space-between; align-items:center; position: sticky; top: 0; z-index: 100; }
+        .menu button { background:none; border:none; color:white; cursor:pointer; font-weight: bold; margin-right:15px; }
+        #search { padding:8px; border-radius: 20px; border: none; width: 200px; }
+
+        /* Stránky */
+        .page { display:none; padding:20px; max-width: 1200px; margin: auto; }
+        .active { display:block !important; }
+
+        /* Karty knih */
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; }
+        .card { background:white; border-radius:8px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,.1); cursor:pointer; transition: 0.2s; }
+        .card:hover { transform: scale(1.02); }
+        .card img { width:100%; height:280px; object-fit:cover; }
+        .card-content { padding:10px; text-align:center; }
+
+        /* Detail knihy (Vyskakovací okno) */
+        #detail-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; overflow-y:auto; padding:20px; box-sizing:border-box; }
+        .detail-container { max-width:900px; margin:auto; display:flex; gap:30px; flex-wrap:wrap; }
+        .detail-img { width:350px; border-radius:10px; box-shadow:0 10px 20px rgba(0,0,0,0.2); }
+        .detail-info { flex:1; min-width:300px; }
+
+        /* Formulář */
+        .admin-form input, .admin-form textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+        .admin-form textarea { height: 150px; }
+        .btn-main { background: var(--dark); color: white; padding: 12px; border: none; cursor: pointer; width: 100%; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="hero">Daragova knihovna</div>
+
+<div id="main-nav">
+    <div class="menu">
+        <button onclick="openPage('all')">📚 Moje Knihy</button>
+        <button onclick="openPage('add')" id="addBtn" style="display:none;">➕ Přidat</button>
+        <button onclick="logout()" style="color:#ff4d4d">🚪 Odhlásit</button>
+    </div>
+    <input id="search" placeholder="Hledat..." onkeyup="searchBooks()">
+</div>
+
+<div id="login-page" class="page active">
+    <div style="max-width:400px; margin:50px auto; background:white; padding:30px; text-align:center; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);">
+        <h2>Vstup</h2>
+        <button class="btn-main" onclick="handleLogin(false)">Vstoupit jako Čtenář</button>
+        <p>nebo</p>
+        <input id="admin-pass" type="password" placeholder="Heslo pro Admina">
+        <button class="btn-main" style="background:var(--accent)" onclick="handleLogin(true)">Přihlásit jako Admin</button>
+    </div>
+</div>
+
+<div id="all" class="page">
+    <h2>Moje sbírka</h2>
+    <div id="allBox" class="grid"></div>
+</div>
+
+<div id="add" class="page">
+    <h2>Přidat knihu</h2>
+    <form id="book-form" class="admin-form">
+        <input id="t" placeholder="Název knihy" required>
+        <input id="a" placeholder="Autor" required>
+        <input id="pub" placeholder="Nakladatelství">
+        <input id="isbn" placeholder="ISBN">
+        <input id="r" type="number" placeholder="Hodnocení 1-10">
+        <input id="imgUrl" placeholder="Vlož URL adresu obrázku (např. z Google Obrázků)">
+        <textarea id="desc" placeholder="Popis knihy / O čem je..."></textarea>
+        <button type="submit" class="btn-main">💾 Uložit do knihovny</button>
+    </form>
+</div>
+
+<div id="detail-overlay">
+    <button onclick="closeDetail()" style="padding:10px 20px; cursor:pointer; margin-bottom:20px;">⬅ Zpět na seznam</button>
+    <div id="detail-content" class="detail-container"></div>
+</div>
+
+<script>
+    let books = JSON.parse(localStorage.getItem('darag_verze_2')) || [];
+
+    function handleLogin(isAdmin) {
+        if (isAdmin && document.getElementById('admin-pass').value !== "Itachi") {
+            alert("Špatně!"); return;
+        }
+        if (isAdmin) document.getElementById('addBtn').style.display = "inline";
+        document.getElementById('login-page').classList.remove('active');
+        document.getElementById('main-nav').style.display = "flex";
+        openPage('all');
+        render();
+    }
+
+    function logout() { location.reload(); }
+
+    function openPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // UKLÁDÁNÍ - Teď už jen textové (žádné soubory, žádné plnění paměti)
+    document.getElementById('book-form').onsubmit = function(e) {
+        e.preventDefault();
+        const newBook = {
+            id: Date.now(),
+            title: document.getElementById('t').value,
+            author: document.getElementById('a').value,
+            publisher: document.getElementById('pub').value,
+            isbn: document.getElementById('isbn').value,
+            rating: document.getElementById('r').value,
+            description: document.getElementById('desc').value,
+            img: document.getElementById('imgUrl').value || 'https://via.placeholder.com/300x400?text=Bez+obalky'
+        };
+        books.unshift(newBook);
+        localStorage.setItem('darag_verze_2', JSON.stringify(books));
+        this.reset();
+        render();
+        openPage('all');
+    };
+
+    function render() {
+        const box = document.getElementById('allBox');
+        box.innerHTML = books.map(b => `
+            <div class="card" onclick="showDetail(${b.id})">
+                <img src="${b.img}">
+                <div class="card-content">
+                    <h3>${b.title}</h3>
+                    <p>${b.author}</p>
+                </div>
+            </div>`).join('');
+    }
+
+    // ZOBRAZENÍ DETAILU NA CELOU STRÁNKU
+    function showDetail(id) {
+        const b = books.find(x => x.id === id);
+        const content = document.getElementById('detail-content');
+        content.innerHTML = `
+            <img src="${b.img}" class="detail-img">
+            <div class="detail-info">
+                <h1>${b.title}</h1>
+                <p><b>Autor:</b> ${b.author}</p>
+                <p><b>Nakladatelství:</b> ${b.publisher || "-"}</p>
+                <p><b>ISBN:</b> ${b.isbn || "-"}</p>
+                <p><b>Moje hodnocení:</b> ⭐ ${b.rating}/10</p>
+                <hr>
+                <h3>O čem kniha je:</h3>
+                <p style="white-space:pre-wrap;">${b.description || "Žádný popis nebyl zadán."}</p>
+            </div>
+        `;
+        document.getElementById('detail-overlay').style.display = "block";
+    }
+
+    function closeDetail() { document.getElementById('detail-overlay').style.display = "none"; }
+
+    function searchBooks() {
+        const q = document.getElementById('search').value.toLowerCase();
+        const filtered = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+        document.getElementById('allBox').innerHTML = filtered.map(b => `
+            <div class="card" onclick="showDetail(${b.id})">
+                <img src="${b.img}">
+                <div class="card-content"><h3>${b.title}</h3><p>${b.author}</p></div>
+            </div>`).join('');
+    }
+</script>
+
+</body>
+</html>
