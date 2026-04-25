@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daragová knihovna</title>
+    <style>
+        :root { --dark: #1a1a1a; --gold: #d4af37; --bg: #f4f1ea; --accent: #8b0000; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--bg); }
+
+        /* HEADER */
+        .hero { 
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=2000');
+            background-size: cover; background-position: center; height: 180px;
+            display: flex; align-items: center; justify-content: center; color: white;
+        }
+
+        /* NAVIGACE */
+        nav { 
+            background: var(--dark); padding: 0 5%; display: none; justify-content: space-between; 
+            align-items: center; position: sticky; top: 0; z-index: 1000; height: 60px;
+        }
+        .nav-menu { display: flex; gap: 15px; }
+        .nav-menu button { 
+            background: transparent; color: white; border: none; padding: 10px; 
+            cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 5px; font-weight: bold;
+        }
+        .nav-menu button:hover { color: var(--gold); }
+        
+        .nav-right { display: flex; align-items: center; gap: 10px; }
+        .search-box input { padding: 8px; border-radius: 20px; border: 1px solid #444; background: #333; color: white; width: 180px; }
+
+        /* STRÁNKY */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .page { display: none; }
+        .page.active { display: block !important; }
+
+        /* PŘIHLÁŠENÍ */
+        .login-card { 
+            max-width: 500px; margin: 50px auto; background: white; padding: 40px; 
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; 
+        }
+        .btn-guest { width: 100%; padding: 15px; background: #222; color: white; border: none; cursor: pointer; font-weight: bold; margin-bottom: 20px; border-radius: 4px; }
+        .btn-admin { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; }
+
+        /* FORMULÁŘ */
+        .admin-form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .full { grid-column: span 3; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+
+        /* KNIHY */
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; margin-top: 20px; }
+        .book-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: 0.3s; }
+        .book-card:hover { transform: translateY(-5px); }
+        .book-card img { width: 100%; height: 350px; object-fit: cover; }
+        .book-info { padding: 15px; }
+
+        /* TOP 10 LIST */
+        .top-item { background: white; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <h1>Daragová knihovna</h1>
+</header>
+
+<nav id="navbar">
+    <div class="nav-menu">
+        <button onclick="openPage('p-news')">✨ NOVINKY</button>
+        <button onclick="openPage('p-top')">🏆 TOP 10</button>
+        <button onclick="openPage('p-all')">📚 KNIHY</button>
+        <button onclick="openPage('p-chat')">💬 DISKUZE</button>
+        <button id="admin-only-btn" onclick="openPage('p-add')" style="display:none; color:var(--gold);">➕ PŘIDAT</button>
+    </div>
+    <div class="nav-right">
+        <div class="search-box"><input type="text" id="findIn" placeholder="Hledat..." onkeyup="search()"></div>
+        <button onclick="location.reload()" style="background:none; border:1px solid #555; color:white; cursor:pointer; padding: 5px 10px; border-radius: 4px;">Odhlásit</button>
+        <a href="https://darag93.github.io/my-web/" style="color:white; text-decoration:none; font-size:12px; margin-left: 10px;">Zpět na web</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div id="p-login" class="page active">
+        <div class="login-card">
+            <h2 style="margin-top:0;">Vítejte</h2>
+            <button class="btn-guest" onclick="handleLogin(false)">Vstoupit bez přihlášení</button>
+            <div style="margin: 20px 0; color: #888;">nebo</div>
+            <h3>Admin přístup</h3>
+            <input type="password" id="adminPass" placeholder="Zadejte heslo..." style="margin-bottom:15px; text-align:center;">
+            <button class="btn-admin" onclick="handleLogin(true)">Přihlásit se</button>
+        </div>
+    </div>
+
+    <div id="p-add" class="page">
+        <h2 style="color: var(--accent);">➕ Přidat novou knihu do sbírky</h2>
+        <form id="addForm" class="admin-form">
+            <input type="text" id="f-title" placeholder="Název knihy" required>
+            <input type="text" id="f-author" placeholder="Autor / Překladatel" required>
+            <input type="text" id="f-genre" placeholder="Žánry">
+            <input type="text" id="f-year" placeholder="Rok vydání">
+            <input type="text" id="f-pub" placeholder="Vydavatelství">
+            <select id="f-bind"><option>Pevná vazba</option><option>Brožovaná</option><option>E-book</option></select>
+            <input type="text" id="f-isbn" placeholder="ISBN">
+            <input type="number" id="f-pages" placeholder="Počet stran">
+            <input type="text" id="f-lang" placeholder="Jazyk">
+            <input type="number" id="f-rating" placeholder="Admin hodnocení (1-10)" min="1" max="10">
+            <select id="f-stat"><option>Přečteno</option><option>Právě čtu</option><option>Chystám se</option></select>
+            <input type="text" id="f-loc" placeholder="Umístění v bytě">
+            <input type="text" id="f-price" placeholder="Pořizovací cena">
+            <textarea id="f-desc" class="full" rows="3" placeholder="Anotace..."></textarea>
+            <input type="file" id="f-img" accept="image/*" required class="full">
+            <button type="submit" class="btn-admin full">💾 ULOŽIT KNIHU</button>
+        </form>
+    </div>
+
+    <div id="p-news" class="page">
+        <h2>✨ Nejnovější kousky</h2>
+        <div class="book-grid" id="news-box"></div>
+    </div>
+
+    <div id="p-all" class="page">
+        <h2>📚 Moje celá knihovna</h2>
+        <div class="book-grid" id="all-box"></div>
+    </div>
+
+    <div id="p-top" class="page">
+        <h2>🏆 To nejlepší (TOP 10)</h2>
+        <div id="top-box"></div>
+    </div>
+
+    <div id="p-chat" class="page">
+        <h2>💬 Diskuze</h2>
+        <div style="background:white; padding:20px; border-radius:8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <div id="chat-list" style="height:300px; overflow-y:auto; margin-bottom:15px; border-bottom:1px solid #eee; padding: 10px;"></div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="chatIn" placeholder="Napište zprávu...">
+                <button onclick="send()" style="background:var(--dark); color:white; border:none; padding:10px 20px; cursor:pointer; border-radius: 4px;">Odeslat</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let isAdmin = false;
+    let books = JSON.parse(localStorage.getItem('lib_data_v2')) || [];
+    let chat = JSON.parse(localStorage.getItem('lib_chat_v2')) || [];
+
+    // Spustit render hned při startu
+    window.onload = function() {
+        render();
+    };
+
+    function handleLogin(adminReq) {
+        if(adminReq) {
+            const p = document.getElementById('adminPass').value;
+            if(p === "Itachi") {
+                isAdmin = true;
+                document.getElementById('admin-only-btn').style.display = "block";
+            } else { 
+                alert("Chybné heslo!"); 
+                return; 
+            }
+        }
+        document.getElementById('p-login').classList.remove('active');
+        document.getElementById('navbar').style.display = "flex";
+        openPage('p-news');
+    }
+
+    function openPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
+    }
+
+    document.getElementById('addForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const b = {
+                title: document.getElementById('f-title').value,
+                author: document.getElementById('f-author').value,
+                rating: parseInt(document.getElementById('f-rating').value) || 0,
+                desc: document.getElementById('f-desc').value,
+                img: event.target.result,
+                id: Date.now()
+            };
+            books.unshift(b);
+            localStorage.setItem('lib_data_v2', JSON.stringify(books));
+            alert("Kniha uložena!");
+            this.reset();
+            render();
+            openPage('p-all');
+        };
+        reader.readAsDataURL(document.getElementById('f-img').files[0]);
+    });
+
+    function render() {
+        const createCard = (b) => `
+            <div class="book-card">
+                <img src="${b.img}">
+                <div class="book-info">
+                    <h3 style="margin:0;">${b.title}</h3>
+                    <p style="color:#666; font-size:14px; margin: 5px 0;">${b.author}</p>
+                    <b style="color:var(--accent)">⭐ Admin: ${b.rating}/10</b>
+                </div>
+            </div>`;
+
+        // Novinky (poslední 4)
+        document.getElementById('news-box').innerHTML = books.slice(0, 4).map(createCard).join('') || '<p>Zatím žádné novinky.</p>';
+        
+        // Všechny knihy
+        document.getElementById('all-box').innerHTML = books.map(createCard).join('') || '<p>Knihovna je prázdná.</p>';
+        
+        // TOP 10 (seřazeno podle hodnocení)
+        const sorted = [...books].sort((a,b) => b.rating - a.rating).slice(0,10);
+        document.getElementById('top-box').innerHTML = sorted.map((b,i) => `
+            <div class="top-item">
+                <span style="font-size:24px; font-weight:bold; width:50px; color:var(--gold);">#${i+1}</span>
+                <img src="${b.img}" style="width:50px; height:70px; object-fit:cover; margin-right:15px; border-radius: 4px;">
+                <div><b>${b.title}</b><br><small>${b.author} (Hodnocení: ${b.rating}/10)</small></div>
+            </div>`).join('') || '<p>Zatím žádné hodnocení.</p>';
+        
+        // Chat
+        document.getElementById('chat-list').innerHTML = chat.map(m => `
+            <div style="margin-bottom: 8px;">
+                <b style="color:${m.u === 'Admin' ? 'var(--accent)' : '#2c3e50'}">${m.u}:</b> ${m.t}
+            </div>`).join('');
+    }
+
+    function send() {
+        const i = document.getElementById('chatIn');
+        if(!i.value) return;
+        chat.push({ u: isAdmin ? "Admin" : "Host", t: i.value });
+        localStorage.setItem('lib_chat_v2', JSON.stringify(chat));
+        i.value = '';
+        render();
+    }
+
+    function search() {
+        const q = document.getElementById('findIn').value.toLowerCase();
+        if(q.length > 0) {
+            const f = books.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+            document.getElementById('all-box').innerHTML = f.map(createCard).join('');
+            openPage('p-all');
+        } else {
+            render();
+        }
+    }
+</script>
+</body>
+</html>
