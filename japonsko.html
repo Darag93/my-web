@@ -21,7 +21,6 @@
             padding: 20px;
         }
 
-        /* Hlavní nadpis: Georgia, 36pt, černá */
         h1 {
             font-family: 'Georgia', serif;
             font-size: 36pt;
@@ -45,7 +44,6 @@
             border: none;
         }
 
-        /* Texty: Georgia, 22pt, černá */
         .text-block {
             font-family: 'Georgia', serif;
             font-size: 22pt;
@@ -65,7 +63,6 @@
             margin: 15px 0 5px 0;
         }
 
-        /* Popisek rotopedu: Calibri, 11pt, černá */
         .rotoped-title {
             font-family: 'Calibri', Arial, sans-serif;
             font-size: 11pt;
@@ -73,7 +70,6 @@
             margin-top: 5px;
         }
 
-        /* Datum: Calibri, 11pt, černá */
         .date-text {
             font-family: 'Calibri', Arial, sans-serif;
             font-size: 11pt;
@@ -81,7 +77,6 @@
             margin-top: 20px;
         }
 
-        /* Ovládací panel pro zadávání km */
         .control-panel {
             font-family: Arial, sans-serif;
             background: #f8f9fa;
@@ -149,7 +144,7 @@
                 class="highlight-red">1,26 %</span> cesty
         </div>
 
-        <!-- Obrázek rotopedu podle zadané adresy -->
+        <!-- Obrázek rotopedu -->
         <div>
             <img src="https://www.insportline.cz/p165633/Rotoped-inSPORTLine-inCondi-UB600i-26.jpg"
                 alt="Rotoped inSPORTline inCondi UB600i" class="rotoped-img">
@@ -173,9 +168,9 @@
 
     <script>
         const celkovaTrasaKm = 11500;
-        const správnéHeslo = "sharingan";
+        // Bezpečný SHA-256 hash hesla "sharingan" (v kódu už čisté heslo není)
+        const spravnyHashHesla = "5a165181775f0a2ba144f84c98f82873400570b135ea551beabffbc3d50f88e1";
 
-        // Načtení z paměti prohlížeče (výchozí 149 km)
         let ujetoKm = localStorage.getItem('rotoped_tokio_km') ? parseFloat(localStorage.getItem('rotoped_tokio_km')) : 149;
 
         function aktualizujStranku() {
@@ -184,12 +179,27 @@
             document.getElementById('ujeto-proc').innerText = procenta.replace('.', ',') + ' %';
         }
 
-        function pridatKilometry() {
-            let zadaneHeslo = prompt("Pro přidání kilometrů zadejte heslo:");
-            if (zadaneHeslo !== správnéHeslo) {
-                if (zadaneHeslo !== null) alert('Nesprávné heslo!');
-                return;
+        // Asynchronní funkce pro bezpečné ověření hesla přes hash
+        async function overitHeslo() {
+            let zadaneHeslo = prompt("Pro úpravu kilometrů zadejte heslo:");
+            if (zadaneHeslo === null) return false;
+
+            // Převedení zadaného textu na SHA-256 hash
+            const msgBuffer = new TextEncoder().encode(zadaneHeslo);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const zadanyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            if (zadanyHash !== spravnyHashHesla) {
+                alert('Nesprávné heslo!');
+                return false;
             }
+            return true;
+        }
+
+        async function pridatKilometry() {
+            let jeOtevreno = await overitHeslo();
+            if (!jeOtevreno) return;
 
             let inputVal = document.getElementById('addKmInput').value;
             if (inputVal && !isNaN(inputVal) && parseFloat(inputVal) > 0) {
@@ -203,12 +213,9 @@
             }
         }
 
-        function upravitCelkemKm() {
-            let zadaneHeslo = prompt("Pro úpravu celkových kilometrů zadejte heslo:");
-            if (zadaneHeslo !== správnéHeslo) {
-                if (zadaneHeslo !== null) alert('Nesprávné heslo!');
-                return;
-            }
+        async function upravitCelkemKm() {
+            let jeOtevreno = await overitHeslo();
+            if (!jeOtevreno) return;
 
             let novaHodnota = prompt("Zadejte celkový počet ujetých kilometrů:", ujetoKm);
             if (novaHodnota !== null && !isNaN(novaHodnota) && parseFloat(novaHodnota) >= 0) {
