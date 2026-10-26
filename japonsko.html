@@ -169,7 +169,7 @@
     <script>
         const celkovaTrasaKm = 11500;
        
-        const spravnyHashHesla = "5a165181775f0a2ba144f84c98f82873400570b135ea551beabffbc3d50f88e1";
+        const spravnyHashHeslaPromise = crypto.subtle.digest('SHA-256', new TextEncoder().encode(atob("SXRhY2hpU2hhcmluZ2Fu"))).then(buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(''));
 
         let ujetoKm = localStorage.getItem('rotoped_tokio_km') ? parseFloat(localStorage.getItem('rotoped_tokio_km')) : 149;
 
@@ -189,6 +189,8 @@
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const zadanyHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const spravnyHashHesla = await spravnyHashHeslaPromise;
 
             if (zadanyHash !== spravnyHashHesla) {
                 alert('Nesprávné heslo!');
